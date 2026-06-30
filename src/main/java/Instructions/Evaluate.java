@@ -4,12 +4,14 @@ import ast.Expression;
 import core.Environment;
 import core.Machine;
 
-public class Evaluate implements Instruction {
+import java.util.Map;
+
+public class Evaluate extends Instruction {
 	Expression expression;
 	Environment environment;
-	float address;
+	Map<String, Integer> address;
 
-	public Evaluate(Expression expression, Environment environment, float address) {
+	public Evaluate(Expression expression, Environment environment, Map<String, Integer> address) {
 		this.expression = expression;
 		this.environment = environment;
 		this.address = address;
@@ -22,7 +24,5 @@ public class Evaluate implements Instruction {
 
 	public Expression getExpression() { return expression; }
 
-	public Environment getEnvironment() { return environment; }
-
-	public float getAddress() { return address; }
+	public Map<String, Integer> getAddress() { return address; }
 }

@@ -6,6 +6,7 @@ import ast.SymbolExpression;
 
 import java.util.Deque;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 
 public class Machine {
@@ -36,7 +37,7 @@ public class Machine {
 	public void executeEvaluate(Evaluate evaluate) {
 		Expression e = evaluate.getExpression();
 		Environment env = evaluate.getEnvironment();
-		float address = evaluate.getAddress();
+		Map<String, Integer> address = evaluate.getAddress();
 
 		if (e instanceof SymbolExpression) {
 			if (env.contains(e)) valueStack.add(e);
@@ -54,8 +55,28 @@ public class Machine {
 	}
 
 	public void executeLetK(LetK letK) {
+		Environment env = letK.getEnvironment();
+		List<Object> binds = letK.getBinds();
+		int index = letK.getIndex();
+		Map<String, Integer> address = letK.getAddress();
+		Object body = letK.getBody();
 
+		Expression bind = (Expression) binds.get(2 * index);
+
+		env.add(bind, valueStack.pop());
+
+		if (2 * ( index + 1 ) < binds.size()) {
+			controlStack.add(new LetK(binds, index + 1, body, env, address));
+			Expression expressionToEvaluate = (Expression) binds.get(2 * ( index + 1 ));
+			address.put("let", 2 * ( index + 1 ));
+			controlStack.add(new Evaluate(expressionToEvaluate, env, address));
+		}
+		else {
+			this.pushBody();
+		}
 	}
+
+	private void pushBody() { throw new RuntimeException("not yet implemented"); }
 
 	public void executeCallK(CallK callK) { }
 

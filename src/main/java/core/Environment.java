@@ -9,7 +9,7 @@ public class Environment {
 
 	public Environment parent;
 
-	public Map<Expression, Double> variables = new HashMap<>();
+	public Map<Expression, Object> variables = new HashMap<>();
 
 	public Environment() {
 		parent = null;
@@ -17,5 +17,9 @@ public class Environment {
 
 	public boolean contains(Expression e) {
 		return variables.containsKey(e);
+	}
+
+	public void add(Expression e, Object value) {
+		variables.put(e, value);
 	}
 }

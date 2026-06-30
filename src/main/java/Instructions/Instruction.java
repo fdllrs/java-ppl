@@ -3,10 +3,14 @@ package Instructions;
 import core.Environment;
 import core.Machine;
 
-public interface Instruction {
+import java.util.Map;
+
+public abstract class Instruction {
 
 	Environment environment = null;
-	float address = Float.NaN;
+	Map<String, Integer> address;
 
-	void executedBy(Machine machine);
+	public abstract void executedBy(Machine machine);
+
+	public Environment getEnvironment() { return environment; }
 }
