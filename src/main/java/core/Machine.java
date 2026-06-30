@@ -2,6 +2,8 @@ package core;
 
 import Instructions.*;
 import ast.Expression;
+import ast.ObserveExpression;
+import ast.SampleExpression;
 import ast.SymbolExpression;
 
 import java.util.Deque;
@@ -39,14 +41,14 @@ public class Machine {
 		Address addresses = evaluate.getAddress();
 
 		if (e instanceof SymbolExpression) {
-			if (env.contains(e)) valueStack.add(e);
+			if (env.contains(e)) valueStack.push(e);
 
-			else if (e.isPrimitive()) valueStack.add(e);
+			else if (e.isPrimitive()) valueStack.push(e);
 
 			else throw new RuntimeException("Cannot evaluate expression");
 		}
 		else if (!( e instanceof List<?> )) {
-			valueStack.add(e);
+			valueStack.push(e);
 		}
 		else {
 			throw new RuntimeException("not yet implemented");
@@ -65,11 +67,11 @@ public class Machine {
 		env.add(bind, valueStack.pop());
 
 		if (2 * ( index + 1 ) < binds.size()) {
-			controlStack.add(new LetK(binds, index + 1, body, env, address));
-			Expression expressionToEvaluate = (Expression) binds.get(2 * ( index + 1 ));
+			controlStack.push(new LetK(binds, index + 1, body, env, address));
+			Expression expressionToEvaluate = (Expression) binds.get(2 * ( index + 1 ) + 1);
 
-			address.append(AddressTag.LET, 2 * ( index + 1 ));
-			controlStack.add(new Evaluate(expressionToEvaluate, env, address));
+			Address newAddress = address.append(AddressTag.LET, 2 * ( index + 1 ));
+			controlStack.push(new Evaluate(expressionToEvaluate, env, newAddress));
 		}
 		else {
 			this.pushBody();
@@ -99,12 +101,23 @@ public class Machine {
 			tag = AddressTag.ELSE;
 		}
 		Address newAddress = address.append(tag, 0);
-		controlStack.add(new Evaluate(branch, env, newAddress));
+		controlStack.push(new Evaluate(branch, env, newAddress));
 	}
 
-	public void executeSampleK(SampleK sampleK) { }
+	public SampleExpression executeSampleK(SampleK sampleK) {
+		Address address = sampleK.getAddress();
+		Object distribution = valueStack.pop();
 
-	public void executeObserveK(ObserveK observeK) { }
+		return new SampleExpression(address, distribution);
+	}
+
+	public ObserveExpression executeObserveK(ObserveK observeK) {
+
+		Address address = observeK.getAddress();
+		Object distribution = valueStack.pop();
+
+		return new ObserveExpression(address, distribution);
+	}
 
 	public void fork() {
 

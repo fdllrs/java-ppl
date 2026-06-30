@@ -1,17 +1,25 @@
 package ast;
 
+import core.Address;
 import core.Environment;
 
 public class ObserveExpression implements Expression {
-	Expression e1;
-	Expression e2;
+
+	Address address;
+	Object distribution;
+
+	public ObserveExpression(Address address, Object distribution) {
+		this.address = address;
+		this.distribution = distribution;
+	}
 
 	@Override
 	public double evaluate(Environment env) {
 		return 0;
 	}
 
-	public ObserveExpression(Expression e1, Expression e2) {
-		this.e1 = e1; this.e2 = e2;
+	@Override
+	public boolean isPrimitive() {
+		return false;
 	}
 }
