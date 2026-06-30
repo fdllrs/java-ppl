@@ -2,9 +2,11 @@ package core;
 
 import Instructions.*;
 import ast.Expression;
-import ast.ObserveExpression;
-import ast.SampleExpression;
 import ast.SymbolExpression;
+import messaging.Message;
+import messaging.Observe;
+import messaging.Return;
+import messaging.Sample;
 
 import java.util.Deque;
 import java.util.List;
@@ -17,6 +19,8 @@ public class Machine {
 	Random rng;
 	Environment environment;
 
+	private Message pendingMessage;
+
 	public Machine(Deque<Instruction> instructions) {
 		controlStack = instructions;
 		valueStack = new java.util.ArrayDeque<>();
@@ -26,13 +30,21 @@ public class Machine {
 		logWeight = 0;
 	}
 
-	public void resume() {
+	public Message resume() {
 
 		while (!controlStack.isEmpty()) {
 			Instruction instruction = controlStack.pop();
 
 			instruction.executedBy(this);
+
+			if (pendingMessage != null) {
+				Message msg = pendingMessage;
+				pendingMessage = null;
+				return msg;
+			}
 		}
+
+		return new Return(valueStack.pop());
 	}
 
 	public void executeEvaluate(Evaluate evaluate) {
@@ -104,19 +116,19 @@ public class Machine {
 		controlStack.push(new Evaluate(branch, env, newAddress));
 	}
 
-	public SampleExpression executeSampleK(SampleK sampleK) {
+	public void executeSampleK(SampleK sampleK) {
 		Address address = sampleK.getAddress();
 		Object distribution = valueStack.pop();
 
-		return new SampleExpression(address, distribution);
+		pendingMessage = new Sample(address, distribution, this);
 	}
 
-	public ObserveExpression executeObserveK(ObserveK observeK) {
+	public void executeObserveK(ObserveK observeK) {
 
 		Address address = observeK.getAddress();
 		Object distribution = valueStack.pop();
 
-		return new ObserveExpression(address, distribution);
+		pendingMessage = new Observe(address, distribution, this);
 	}
 
 	public void fork() {
