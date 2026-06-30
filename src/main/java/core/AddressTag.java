@@ -1,5 +1,5 @@
 package core;
 
 public enum AddressTag {
-	let, test, distribution, value, evaluate, then, ELSE,
+	LET, TEST, DISTRIBUTION, VALUE, EVALUATE, THEN, ELSE
 }

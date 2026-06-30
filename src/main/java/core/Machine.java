@@ -6,7 +6,6 @@ import ast.SymbolExpression;
 
 import java.util.Deque;
 import java.util.List;
-import java.util.Map;
 import java.util.Random;
 
 public class Machine {
@@ -37,7 +36,7 @@ public class Machine {
 	public void executeEvaluate(Evaluate evaluate) {
 		Expression e = evaluate.getExpression();
 		Environment env = evaluate.getEnvironment();
-		Map<AddressTag, Integer> addresses = evaluate.getAddresses();
+		Address addresses = evaluate.getAddress();
 
 		if (e instanceof SymbolExpression) {
 			if (env.contains(e)) valueStack.add(e);
@@ -58,7 +57,7 @@ public class Machine {
 		Environment env = letK.getEnvironment();
 		List<Object> binds = letK.getBinds();
 		int index = letK.getIndex();
-		Map<AddressTag, Integer> address = letK.getAddresses();
+		Address address = letK.getAddress();
 		Object body = letK.getBody();
 
 		Expression bind = (Expression) binds.get(2 * index);
@@ -68,7 +67,8 @@ public class Machine {
 		if (2 * ( index + 1 ) < binds.size()) {
 			controlStack.add(new LetK(binds, index + 1, body, env, address));
 			Expression expressionToEvaluate = (Expression) binds.get(2 * ( index + 1 ));
-			address.put(AddressTag.let, 2 * ( index + 1 ));
+
+			address.append(AddressTag.LET, 2 * ( index + 1 ));
 			controlStack.add(new Evaluate(expressionToEvaluate, env, address));
 		}
 		else {
@@ -80,7 +80,27 @@ public class Machine {
 
 	public void executeCallK(CallK callK) { }
 
-	public void executeIfK(IfK ifK) { }
+	public void executeIfK(IfK ifK) {
+		Expression testExpression = ifK.getTestExpression();
+		Expression thenExpression = ifK.getThenExpression();
+		Expression elseExpression = ifK.getElseExpression();
+
+		Environment env = ifK.getEnvironment();
+		Address address = ifK.getAddress();
+
+		Expression branch;
+		AddressTag tag;
+		if ((boolean) valueStack.pop()) {
+			branch = thenExpression;
+			tag = AddressTag.THEN;
+		}
+		else {
+			branch = elseExpression;
+			tag = AddressTag.ELSE;
+		}
+		Address newAddress = address.append(tag, 0);
+		controlStack.add(new Evaluate(branch, env, newAddress));
+	}
 
 	public void executeSampleK(SampleK sampleK) { }
 
@@ -88,5 +108,9 @@ public class Machine {
 
 	public void fork() {
 
+	}
+
+	public void executeDiscard(Discard discard) {
+		valueStack.pop();
 	}
 }

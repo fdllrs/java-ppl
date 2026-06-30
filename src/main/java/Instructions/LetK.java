@@ -1,12 +1,11 @@
 package Instructions;
 
 import ast.Expression;
-import core.AddressTag;
+import core.Address;
 import core.Environment;
 import core.Machine;
 
 import java.util.List;
-import java.util.Map;
 
 public class LetK extends Instruction {
 	List<Expression> expressions;
@@ -14,15 +13,11 @@ public class LetK extends Instruction {
 	List<Object> binds;
 	Object body;
 
-	public LetK(List<Object> binds,
-			int index,
-			Object body,
-			Environment env,
-			Map<AddressTag, Integer> address) {
+	public LetK(List<Object> binds, int index, Object body, Environment env, Address address) {
 		this.binds = binds;
 		this.index = index;
 		this.body = body;
-		this.addresses = address;
+		this.address = address;
 		this.environment = env;
 	}
 
