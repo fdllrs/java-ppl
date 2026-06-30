@@ -1,6 +1,7 @@
 package Instructions;
 
 import ast.Expression;
+import core.AddressTag;
 import core.Environment;
 import core.Machine;
 
@@ -9,12 +10,13 @@ import java.util.Map;
 public class Evaluate extends Instruction {
 	Expression expression;
 	Environment environment;
-	Map<String, Integer> address;
 
-	public Evaluate(Expression expression, Environment environment, Map<String, Integer> address) {
+	public Evaluate(Expression expression,
+			Environment environment,
+			Map<AddressTag, Integer> addresses) {
 		this.expression = expression;
 		this.environment = environment;
-		this.address = address;
+		this.addresses = addresses;
 	}
 
 	@Override
@@ -23,6 +25,4 @@ public class Evaluate extends Instruction {
 	}
 
 	public Expression getExpression() { return expression; }
-
-	public Map<String, Integer> getAddress() { return address; }
 }

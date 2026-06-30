@@ -1,6 +1,7 @@
 package Instructions;
 
 import ast.Expression;
+import core.AddressTag;
 import core.Environment;
 import core.Machine;
 
@@ -17,11 +18,11 @@ public class LetK extends Instruction {
 			int index,
 			Object body,
 			Environment env,
-			Map<String, Integer> address) {
+			Map<AddressTag, Integer> address) {
 		this.binds = binds;
 		this.index = index;
 		this.body = body;
-		this.address = address;
+		this.addresses = address;
 		this.environment = env;
 	}
 
@@ -42,6 +43,4 @@ public class LetK extends Instruction {
 	public List<Expression> getExpressions() { return expressions; }
 
 	public Object getBody() { return body; }
-
-	public Map<String, Integer> getAddress() { return address; }
 }

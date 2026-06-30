@@ -37,7 +37,7 @@ public class Machine {
 	public void executeEvaluate(Evaluate evaluate) {
 		Expression e = evaluate.getExpression();
 		Environment env = evaluate.getEnvironment();
-		Map<String, Integer> address = evaluate.getAddress();
+		Map<AddressTag, Integer> addresses = evaluate.getAddresses();
 
 		if (e instanceof SymbolExpression) {
 			if (env.contains(e)) valueStack.add(e);
@@ -58,7 +58,7 @@ public class Machine {
 		Environment env = letK.getEnvironment();
 		List<Object> binds = letK.getBinds();
 		int index = letK.getIndex();
-		Map<String, Integer> address = letK.getAddress();
+		Map<AddressTag, Integer> address = letK.getAddresses();
 		Object body = letK.getBody();
 
 		Expression bind = (Expression) binds.get(2 * index);
@@ -68,7 +68,7 @@ public class Machine {
 		if (2 * ( index + 1 ) < binds.size()) {
 			controlStack.add(new LetK(binds, index + 1, body, env, address));
 			Expression expressionToEvaluate = (Expression) binds.get(2 * ( index + 1 ));
-			address.put("let", 2 * ( index + 1 ));
+			address.put(AddressTag.let, 2 * ( index + 1 ));
 			controlStack.add(new Evaluate(expressionToEvaluate, env, address));
 		}
 		else {
