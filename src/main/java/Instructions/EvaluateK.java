@@ -5,11 +5,11 @@ import core.Address;
 import core.Environment;
 import core.Machine;
 
-public class Evaluate extends Instruction {
+public class EvaluateK extends Instruction {
 	Expression expression;
 	Environment environment;
 
-	public Evaluate(Expression expression, Environment environment, Address addresses) {
+	public EvaluateK(Expression expression, Environment environment, Address addresses) {
 		this.expression = expression;
 		this.environment = environment;
 		this.address = addresses;

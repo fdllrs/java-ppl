@@ -1,10 +1,10 @@
 package ast;
 
+import core.Address;
 import core.Environment;
+import core.Machine;
 
 public interface Expression {
 
-	double evaluate(Environment env);
-
-	boolean isPrimitive();
+	void evaluate(Environment env, Address address, Machine machine);
 }

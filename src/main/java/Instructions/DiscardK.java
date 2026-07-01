@@ -2,9 +2,9 @@ package Instructions;
 
 import core.Machine;
 
-public class Discard extends Instruction {
+public class DiscardK extends Instruction {
 	@Override
 	public void executedBy(Machine machine) {
-		machine.executeDiscard(this);
+		machine.executeDiscard();
 	}
 }

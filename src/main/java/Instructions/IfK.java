@@ -22,8 +22,6 @@ public class IfK extends Instruction {
 		this.address = addresses;
 	}
 
-	public Expression getTestExpression() { return testExpression; }
-
 	public Expression getThenExpression() { return thenExpression; }
 
 	public Expression getElseExpression() { return elseExpression; }

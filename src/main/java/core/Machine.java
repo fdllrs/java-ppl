@@ -2,7 +2,6 @@ package core;
 
 import Instructions.*;
 import ast.Expression;
-import ast.SymbolExpression;
 import messaging.Message;
 import messaging.Observe;
 import messaging.Return;
@@ -47,24 +46,12 @@ public class Machine {
 		return new Return(valueStack.pop());
 	}
 
-	public void executeEvaluate(Evaluate evaluate) {
-		Expression e = evaluate.getExpression();
+	public void executeEvaluate(EvaluateK evaluate) {
+		Expression expression = evaluate.getExpression();
 		Environment env = evaluate.getEnvironment();
-		Address addresses = evaluate.getAddress();
+		Address address = evaluate.getAddress();
 
-		if (e instanceof SymbolExpression) {
-			if (env.contains(e)) valueStack.push(e);
-
-			else if (e.isPrimitive()) valueStack.push(e);
-
-			else throw new RuntimeException("Cannot evaluate expression");
-		}
-		else if (!( e instanceof List<?> )) {
-			valueStack.push(e);
-		}
-		else {
-			throw new RuntimeException("not yet implemented");
-		}
+		expression.evaluate(env, address, this);
 	}
 
 	public void executeLetK(LetK letK) {
@@ -74,7 +61,7 @@ public class Machine {
 		Address address = letK.getAddress();
 		Object body = letK.getBody();
 
-		Expression bind = (Expression) binds.get(2 * index);
+		String bind = (String) binds.get(2 * index);
 
 		env.add(bind, valueStack.pop());
 
@@ -83,7 +70,7 @@ public class Machine {
 			Expression expressionToEvaluate = (Expression) binds.get(2 * ( index + 1 ) + 1);
 
 			Address newAddress = address.append(AddressTag.LET, 2 * ( index + 1 ));
-			controlStack.push(new Evaluate(expressionToEvaluate, env, newAddress));
+			controlStack.push(new EvaluateK(expressionToEvaluate, env, newAddress));
 		}
 		else {
 			this.pushBody();
@@ -95,7 +82,6 @@ public class Machine {
 	public void executeCallK(CallK callK) { }
 
 	public void executeIfK(IfK ifK) {
-		Expression testExpression = ifK.getTestExpression();
 		Expression thenExpression = ifK.getThenExpression();
 		Expression elseExpression = ifK.getElseExpression();
 
@@ -113,7 +99,7 @@ public class Machine {
 			tag = AddressTag.ELSE;
 		}
 		Address newAddress = address.append(tag, 0);
-		controlStack.push(new Evaluate(branch, env, newAddress));
+		controlStack.push(new EvaluateK(branch, env, newAddress));
 	}
 
 	public void executeSampleK(SampleK sampleK) {
@@ -135,7 +121,46 @@ public class Machine {
 
 	}
 
-	public void executeDiscard(Discard discard) {
+	public void executeDiscard() {
 		valueStack.pop();
+	}
+
+	public void evaluateSymbol(Object value) {
+		valueStack.push(value);
+	}
+
+	public void evaluateIf(Expression testExpression,
+			Expression thenExpression,
+			Expression elseExpression,
+			Address address) {
+		controlStack.push(new IfK(testExpression,
+								  thenExpression,
+								  elseExpression,
+								  environment,
+								  address));
+
+		Address newAddress = address.append(AddressTag.TEST, 0);
+		controlStack.push(new EvaluateK(testExpression, environment, newAddress));
+	}
+
+	public void evaluateObserve(Expression expression1,
+			Expression expression2,
+			Environment environment,
+			Address address) {
+
+		controlStack.push(new ObserveK(address));
+
+		Address newAddressValue = address.append(AddressTag.VALUE, 0);
+		controlStack.push(new EvaluateK(expression2, environment, newAddressValue));
+
+		Address newAddressDistribution = address.append(AddressTag.DISTRIBUTION, 0);
+		controlStack.push(new EvaluateK(expression1, environment, newAddressDistribution));
+	}
+
+	public void evaluateSample(Expression expression, Environment environment, Address address) {
+		controlStack.push(new SampleK(address));
+
+		Address newAddressDistribution = address.append(AddressTag.DISTRIBUTION, 0);
+		controlStack.push(new EvaluateK(expression, environment, newAddressDistribution));
 	}
 }
