@@ -18,8 +18,8 @@ public class IfExpression implements Expression {
 	}
 
 	@Override
-	public void evaluate(Environment env, Address address, Machine machine) {
+	public void evaluate(Environment environment, Address address, Machine machine) {
 
-		machine.evaluateIf(testExpression, thenExpression, elseExpression, address);
+		machine.evaluateIf(testExpression, thenExpression, elseExpression, environment, address);
 	}
 }

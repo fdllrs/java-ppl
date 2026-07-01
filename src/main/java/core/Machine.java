@@ -7,9 +7,7 @@ import messaging.Observe;
 import messaging.Return;
 import messaging.Sample;
 
-import java.util.Deque;
-import java.util.List;
-import java.util.Random;
+import java.util.*;
 
 public class Machine {
 	Deque<Instruction> controlStack;
@@ -79,7 +77,33 @@ public class Machine {
 
 	private void pushBody() { throw new RuntimeException("not yet implemented"); }
 
-	public void executeCallK(CallK callK) { }
+	public void executeCallK(CallK callK) {
+		int paramAmount = callK.getParamAmount();
+		Address address = callK.getAddress();
+		List<Object> args = new ArrayList<>();
+		for (int i = 0; i < paramAmount; i++) {
+			args.add(valueStack.pop());
+		}
+		Collections.reverse(args);
+
+		Object f = valueStack.pop();
+		if (f instanceof Closure closure) {
+			Environment newEnvironment = new Environment(closure.getEnvironment());
+			List<String> functionParams = closure.getParams();
+			for (int i = 0; i < paramAmount; i++) {
+				newEnvironment.add(functionParams.get(i), args.get(i));
+			}
+			pushBody();
+		}
+		else {
+			Object result = applyPrimitive(f, args);
+			valueStack.push(result);
+		}
+	}
+
+	private Object applyPrimitive(Object f, List<Object> args) {
+		throw new RuntimeException("not yet implemented");
+	}
 
 	public void executeIfK(IfK ifK) {
 		Expression thenExpression = ifK.getThenExpression();
@@ -132,6 +156,7 @@ public class Machine {
 	public void evaluateIf(Expression testExpression,
 			Expression thenExpression,
 			Expression elseExpression,
+			Environment environment,
 			Address address) {
 		controlStack.push(new IfK(testExpression,
 								  thenExpression,
@@ -162,5 +187,24 @@ public class Machine {
 
 		Address newAddressDistribution = address.append(AddressTag.DISTRIBUTION, 0);
 		controlStack.push(new EvaluateK(expression, environment, newAddressDistribution));
+	}
+
+	public void evaluateFn(List<String> params, List<Expression> body, Environment environment) {
+		valueStack.push(new Closure(params, body, environment));
+	}
+
+	public void evaluateCall(Expression operator,
+			List<Expression> operands,
+			Environment environment,
+			Address address) {
+
+		controlStack.push(new CallK(operands.size(), address));
+
+		for (int i = operands.size() - 1; i >= 0; i--) {
+			Address argAddress = address.append(i);
+			controlStack.push(new EvaluateK(operands.get(i), environment, argAddress));
+		}
+		Address fnAddr = address.append(AddressTag.FN, 0);
+		controlStack.push(new EvaluateK(operator, environment, fnAddr));
 	}
 }

@@ -8,9 +8,9 @@ public class SymbolExpression implements Expression {
 	public String name;
 
 	@Override
-	public void evaluate(Environment env, Address address, Machine machine) {
+	public void evaluate(Environment environment, Address address, Machine machine) {
 
-		Object val = env.lookup(this.name);
+		Object val = environment.lookup(this.name);
 		if (val != null) {
 			machine.evaluateSymbol(val);
 		}

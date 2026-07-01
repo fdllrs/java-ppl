@@ -6,5 +6,5 @@ import core.Machine;
 
 public interface Expression {
 
-	void evaluate(Environment env, Address address, Machine machine);
+	void evaluate(Environment environment, Address address, Machine machine);
 }

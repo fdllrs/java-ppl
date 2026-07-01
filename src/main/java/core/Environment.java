@@ -11,6 +11,11 @@ public class Environment {
 
 	}
 
+	public Environment(Environment environment) {
+		variables = new HashMap<>(environment.variables);
+		//TODO: deep copy
+	}
+
 	public boolean contains(String name) {
 		return variables.containsKey(name);
 	}
