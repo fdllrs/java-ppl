@@ -78,7 +78,7 @@ public class Machine {
 	private void pushBody(List<Expression> body, Environment environment, Address address) {
 
 		List<Instruction> instructions = new ArrayList<>();
-		for (int i = 0; i < body.size(); i++) {
+		for (int i = 0; i < body.size() - 1; i++) {
 			Expression expression = body.get(i);
 
 			Address newAddress = address.append(AddressTag.BODY, i);
@@ -89,7 +89,9 @@ public class Machine {
 		instructions.add(new EvaluateK(body.getLast(), environment, newAddress));
 
 		Collections.reverse(instructions);
-		controlStack.addAll(instructions);
+		for (Instruction instruction : instructions) {
+			controlStack.push(instruction);
+		}
 	}
 
 	public void executeCallK(CallK callK) {
@@ -103,9 +105,7 @@ public class Machine {
 
 		Object f = valueStack.pop();
 		if (f instanceof Closure(
-				List<String> functionParams,
-				List<Expression> body,
-				Environment environment1
+				List<String> functionParams, List<Expression> body, Environment environment1
 		)) {
 			Environment newEnvironment = new Environment(environment1);
 			for (int i = 0; i < paramAmount; i++) {
