@@ -57,7 +57,7 @@ public class Machine {
 		List<Object> binds = letK.getBinds();
 		int index = letK.getIndex();
 		Address address = letK.getAddress();
-		Object body = letK.getBody();
+		List<Expression> body = letK.getBody();
 
 		String bind = (String) binds.get(2 * index);
 
@@ -71,11 +71,26 @@ public class Machine {
 			controlStack.push(new EvaluateK(expressionToEvaluate, env, newAddress));
 		}
 		else {
-			this.pushBody();
+			this.pushBody(body, env, address);
 		}
 	}
 
-	private void pushBody() { throw new RuntimeException("not yet implemented"); }
+	private void pushBody(List<Expression> body, Environment environment, Address address) {
+
+		List<Instruction> instructions = new ArrayList<>();
+		for (int i = 0; i < body.size(); i++) {
+			Expression expression = body.get(i);
+
+			Address newAddress = address.append(AddressTag.BODY, i);
+			instructions.add(new EvaluateK(expression, environment, newAddress));
+			instructions.add(new DiscardK());
+		}
+		Address newAddress = address.append(AddressTag.BODY, body.size());
+		instructions.add(new EvaluateK(body.getLast(), environment, newAddress));
+
+		Collections.reverse(instructions);
+		controlStack.addAll(instructions);
+	}
 
 	public void executeCallK(CallK callK) {
 		int paramAmount = callK.getParamAmount();
@@ -87,13 +102,16 @@ public class Machine {
 		Collections.reverse(args);
 
 		Object f = valueStack.pop();
-		if (f instanceof Closure closure) {
-			Environment newEnvironment = new Environment(closure.getEnvironment());
-			List<String> functionParams = closure.getParams();
+		if (f instanceof Closure(
+				List<String> functionParams,
+				List<Expression> body,
+				Environment environment1
+		)) {
+			Environment newEnvironment = new Environment(environment1);
 			for (int i = 0; i < paramAmount; i++) {
 				newEnvironment.add(functionParams.get(i), args.get(i));
 			}
-			pushBody();
+			pushBody(body, newEnvironment, address);
 		}
 		else {
 			Object result = applyPrimitive(f, args);

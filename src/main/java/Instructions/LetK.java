@@ -11,9 +11,13 @@ public class LetK extends Instruction {
 	List<Expression> expressions;
 	int index;
 	List<Object> binds;
-	Object body;
+	List<Expression> body;
 
-	public LetK(List<Object> binds, int index, Object body, Environment env, Address address) {
+	public LetK(List<Object> binds,
+			int index,
+			List<Expression> body,
+			Environment env,
+			Address address) {
 		this.binds = binds;
 		this.index = index;
 		this.body = body;
@@ -37,5 +41,5 @@ public class LetK extends Instruction {
 
 	public List<Expression> getExpressions() { return expressions; }
 
-	public Object getBody() { return body; }
+	public List<Expression> getBody() { return body; }
 }
