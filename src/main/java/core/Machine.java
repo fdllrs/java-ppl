@@ -2,9 +2,10 @@ package core;
 
 import Instructions.*;
 import ast.Expression;
+import distributions.Distribution;
+import messaging.Done;
 import messaging.Message;
 import messaging.Observe;
-import messaging.Return;
 import messaging.Sample;
 
 import java.util.*;
@@ -41,7 +42,7 @@ public class Machine {
 			}
 		}
 
-		return new Return(valueStack.pop());
+		return new Done(valueStack.pop(), this);
 	}
 
 	public void executeEvaluate(EvaluateK evaluate) {
@@ -222,7 +223,7 @@ public class Machine {
 
 	public void executeSampleK(SampleK sampleK) {
 		Address address = sampleK.getAddress();
-		Object distribution = valueStack.pop();
+		Distribution distribution = (Distribution) valueStack.pop();
 
 		pendingMessage = new Sample(address, distribution, this);
 	}
@@ -230,7 +231,7 @@ public class Machine {
 	public void executeObserveK(ObserveK observeK) {
 		Address address = observeK.getAddress();
 		Object value = valueStack.pop();
-		Object distribution = valueStack.pop();
+		Distribution distribution = (Distribution) valueStack.pop();
 
 		pendingMessage = new Observe(address, distribution, value, this);
 	}
@@ -317,4 +318,16 @@ public class Machine {
 			this.pushBody(body, environment, address);
 		}
 	}
+
+	public Random getRng() { return rng; }
+
+	public void send(Object sample) {
+		valueStack.push(sample);
+	}
+
+	public void addToLogWeight(double weight) {
+		logWeight += weight;
+	}
+
+	public double getLogWeight() { return logWeight; }
 }

@@ -1,25 +1,30 @@
-package core;
+package inference;
 
 import Instructions.EvaluateK;
 import Instructions.Instruction;
 import ast.DefnExpression;
 import ast.Expression;
+import core.Address;
+import core.Closure;
+import core.Environment;
+import core.Machine;
+import distributions.Distribution;
 
 import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.List;
 import java.util.Random;
 
-public class InferenceEngine {
+public abstract class InferenceEngine {
+	protected final Random rng;
 	private final List<Expression> program;
-	private final float rng;
 
-	public InferenceEngine(List<Expression> program, float rng) {
+	public InferenceEngine(List<Expression> program, Random rng) {
 		this.program = program;
 		this.rng = rng;
 	}
 
-	public Machine initializeMachine() {
+	protected Machine initializeMachine() {
 		assertProgramNotEmpty();
 		Environment initialEnvironment = new Environment();
 		Expression main = null;
@@ -38,7 +43,7 @@ public class InferenceEngine {
 		Deque<Instruction> controlStack = new ArrayDeque<>();
 		controlStack.push(new EvaluateK(main, initialEnvironment, new Address()));
 
-		return new Machine(controlStack, initialEnvironment, new Random((long) ( rng * 100000 )));
+		return new Machine(controlStack, initialEnvironment, rng);
 	}
 
 	private void assertProgramNotEmpty() {
@@ -46,4 +51,17 @@ public class InferenceEngine {
 			throw new RuntimeException("Empty program");
 		}
 	}
+
+	public abstract Double run(int iterations);
+
+	public abstract void processSample(Address address, Distribution distribution,
+			Machine machine);
+	public abstract void processFork();
+	public abstract void processObserve(Address address,
+			Distribution distribution,
+			Object value,
+			Machine machine);
+	public abstract void processDone(Object returnValue, Machine machine);
+
+	public record MachineResult(double logWeight, Object returnValue) { }
 }
