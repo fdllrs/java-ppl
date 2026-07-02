@@ -18,4 +18,9 @@ public class ObserveExpression implements Expression {
 	public void evaluate(Environment environment, Address address, Machine machine) {
 		machine.evaluateObserve(expression1, expression2, environment, address);
 	}
+
+	@Override
+	public String toString() {
+		return "observe " + expression1 + " " + expression2;
+	}
 }

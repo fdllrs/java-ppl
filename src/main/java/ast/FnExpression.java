@@ -20,4 +20,9 @@ public class FnExpression implements Expression {
 	public void evaluate(Environment environment, Address address, Machine machine) {
 		machine.evaluateFn(params, body, environment);
 	}
+
+	@Override
+	public String toString() {
+		return String.format("(fn %s %s)", params, body);
+	}
 }

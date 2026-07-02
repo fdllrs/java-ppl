@@ -22,4 +22,9 @@ public class IfExpression implements Expression {
 
 		machine.evaluateIf(testExpression, thenExpression, elseExpression, environment, address);
 	}
+
+	@Override
+	public String toString() {
+		return "if " + testExpression + " " + thenExpression + " else " + elseExpression;
+	}
 }

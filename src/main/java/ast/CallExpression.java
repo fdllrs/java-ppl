@@ -21,4 +21,9 @@ public class CallExpression implements Expression {
 
 		machine.evaluateCall(operator, operands, environment, address);
 	}
+
+	@Override
+	public String toString() {
+		return operator + "(" + operands + ")";
+	}
 }

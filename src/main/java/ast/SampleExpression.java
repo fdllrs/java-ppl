@@ -14,7 +14,11 @@ public class SampleExpression implements Expression {
 
 	@Override
 	public void evaluate(Environment environment, Address address, Machine machine) {
-
 		machine.evaluateSample(expression, environment, address);
+	}
+
+	@Override
+	public String toString() {
+		return "sample " + expression;
 	}
 }

@@ -4,17 +4,15 @@ import core.Address;
 import core.Environment;
 import core.Machine;
 
-import java.util.List;
-
-public record LetExpression(List<Object> binds, List<Expression> body) implements Expression {
+public record ValueExpression(Object value) implements Expression {
 
 	@Override
 	public void evaluate(Environment environment, Address address, Machine machine) {
-		machine.evaluateLet(binds, body, environment, address);
+		machine.evaluateSymbol(this.value);
 	}
 
 	@Override
 	public String toString() {
-		return "let " + binds + " " + body;
+		return value.toString();
 	}
 }
