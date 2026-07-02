@@ -13,7 +13,7 @@ import java.util.*;
 
 public abstract class InferenceEngine {
 	protected final Random rng;
-	private final List<Expression> program;
+	protected final List<Expression> program;
 
 	public InferenceEngine(List<Expression> program, Random rng) {
 		this.program = program;

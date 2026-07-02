@@ -8,13 +8,8 @@ public class TestProgram {
 
 	public static List<Expression> Ejemplo1() {
 		String program = "(let [mu (sample (normal 0 1))] (observe (normal mu 1) 2.3) mu)";
-		System.out.println("\nEjemplo 1: " + program);
 
-		List<Expression> parsedProgram = Parser.parse(program);
-		System.out.println("AST parsed size: " + parsedProgram.size());
-		System.out.println("AST parsed representation: " + parsedProgram.getFirst());
-
-		return parsedProgram;
+		return Parser.parse(program);
 	}
 
 	public static List<Expression> Ejemplo2() {
@@ -29,10 +24,6 @@ public class TestProgram {
 						 "total (+ b1 b2 b3 b4 b5 b6 b7 b8)] " +
 						 "(observe (normal 7 2) total) total)";
 
-		System.out.println("\nEjemplo 2: " + program);
-		List<Expression> parsedProgram = Parser.parse(program);
-		System.out.println("AST parsed size: " + parsedProgram.size());
-
-		return parsedProgram;
+		return Parser.parse(program);
 	}
 }

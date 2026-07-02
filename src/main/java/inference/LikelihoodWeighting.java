@@ -2,6 +2,7 @@ package inference;
 
 import ast.Expression;
 import core.Machine;
+import distributions.Distribution;
 import messaging.*;
 
 import java.util.ArrayList;
@@ -28,7 +29,7 @@ public class LikelihoodWeighting extends InferenceEngine {
 
 	private void runIteration(List<Double> values, List<Double> logWeights) {
 		MachineResult result = executeLikelihoodWeighting();
-		values.add((Double) result.returnValue());
+		values.add(( (Number) result.returnValue() ).doubleValue());
 		logWeights.add(result.logWeight());
 	}
 
@@ -46,15 +47,15 @@ public class LikelihoodWeighting extends InferenceEngine {
 		while (true) {
 			Message message = machine.resume();
 			switch (message) {
-				case Sample(_, var distribution) -> {
+				case Sample(_, Distribution distribution) -> {
 					Object sampleVal = distribution.sample(machine.getRng());
 					machine.send(sampleVal);
 				}
-				case Observe(_, var distribution, var observation) -> {
+				case Observe(_, Distribution distribution, Object observation) -> {
 					machine.addToLogWeight(distribution.logProb(observation));
 					machine.send(observation);
 				}
-				case Done(var returnValue) -> {
+				case Done(Object returnValue) -> {
 					return new MachineResult(machine.getLogWeight(), returnValue);
 				}
 				case Fork() ->
