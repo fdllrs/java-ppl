@@ -42,7 +42,7 @@ public class Machine {
 			}
 		}
 
-		return new Done(valueStack.pop(), this);
+		return new Done(valueStack.pop());
 	}
 
 	public void executeEvaluate(EvaluateK evaluate) {
@@ -225,7 +225,7 @@ public class Machine {
 		Address address = sampleK.getAddress();
 		Distribution distribution = (Distribution) valueStack.pop();
 
-		pendingMessage = new Sample(address, distribution, this);
+		pendingMessage = new Sample(address, distribution);
 	}
 
 	public void executeObserveK(ObserveK observeK) {
@@ -233,11 +233,7 @@ public class Machine {
 		Object value = valueStack.pop();
 		Distribution distribution = (Distribution) valueStack.pop();
 
-		pendingMessage = new Observe(address, distribution, value, this);
-	}
-
-	public void fork() {
-
+		pendingMessage = new Observe(address, distribution, value);
 	}
 
 	public void executeDiscard() {

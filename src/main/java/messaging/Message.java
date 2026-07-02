@@ -1,8 +1,4 @@
 package messaging;
 
-import inference.InferenceEngine;
+public sealed interface Message permits Sample, Observe, Done, Fork { }
 
-public interface Message {
-
-	void processMessage(InferenceEngine inferenceEngine);
-}

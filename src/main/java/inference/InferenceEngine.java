@@ -8,12 +8,8 @@ import core.Address;
 import core.Closure;
 import core.Environment;
 import core.Machine;
-import distributions.Distribution;
 
-import java.util.ArrayDeque;
-import java.util.Deque;
-import java.util.List;
-import java.util.Random;
+import java.util.*;
 
 public abstract class InferenceEngine {
 	protected final Random rng;
@@ -22,6 +18,24 @@ public abstract class InferenceEngine {
 	public InferenceEngine(List<Expression> program, Random rng) {
 		this.program = program;
 		this.rng = rng;
+	}
+
+	public static List<Double> softmax(List<Double> logWeights) {
+		List<Double> probabilities = new ArrayList<>();
+
+		double max = logWeights.stream().mapToDouble(Double::doubleValue).max().orElse(0.0);
+
+		double sum = 0.0;
+		for (int i = 0; i < logWeights.size(); i++) {
+			probabilities.add(i, Math.exp(logWeights.get(i) - max));
+			sum += probabilities.get(i);
+		}
+
+		for (int i = 0; i < probabilities.size(); i++) {
+			probabilities.set(i, probabilities.get(i) / sum);
+		}
+
+		return probabilities;
 	}
 
 	protected Machine initializeMachine() {
@@ -53,15 +67,6 @@ public abstract class InferenceEngine {
 	}
 
 	public abstract Double run(int iterations);
-
-	public abstract void processSample(Address address, Distribution distribution,
-			Machine machine);
-	public abstract void processFork();
-	public abstract void processObserve(Address address,
-			Distribution distribution,
-			Object value,
-			Machine machine);
-	public abstract void processDone(Object returnValue, Machine machine);
 
 	public record MachineResult(double logWeight, Object returnValue) { }
 }
