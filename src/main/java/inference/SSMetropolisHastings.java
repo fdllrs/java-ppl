@@ -14,29 +14,33 @@ public class SSMetropolisHastings extends InferenceEngine {
 		super(program, rng);
 	}
 
-	private static SSMHTraceResult processMessage(Random rng,
-			Address addressToReuse,
-			Map<Address, Object> cache,
+	private static Trace processMessage(Random rng,
+			Address proposalAddress,
+			Map<Address, Object> currentSamples,
 			Message message,
-			Map<Address, Object> xMap,
-			Map<Address, Object> sMap,
+			Map<Address, Object> samples,
+			Map<Address, Object> logPriors,
 			Machine machine,
-			Map<Address, Object> oMap) {
+			Map<Address, Object> logLikelihoods) {
 
 		switch (message) {
 			case Sample(Address sampleAddress, Distribution distribution) -> processSample(rng,
-																						   addressToReuse,
-																						   cache,
-																						   xMap,
-																						   sMap,
+																						   proposalAddress,
+																						   currentSamples,
+																						   samples,
+																						   logPriors,
 																						   machine,
 																						   sampleAddress,
 																						   distribution);
 			case Observe(
 					Address observeAddress, Distribution distribution, Object observation
-			) -> processObservation(machine, oMap, observeAddress, distribution, observation);
+			) -> processObservation(machine,
+									logLikelihoods,
+									observeAddress,
+									distribution,
+									observation);
 			case Done(var returnValue) -> {
-				return new SSMHTraceResult(returnValue, xMap, sMap, oMap);
+				return new Trace(returnValue, samples, logPriors, logLikelihoods);
 			}
 			case Fork() -> throw new RuntimeException("Should not fork in SSMH");
 		}
@@ -44,156 +48,158 @@ public class SSMetropolisHastings extends InferenceEngine {
 	}
 
 	private static void processObservation(Machine machine,
-			Map<Address, Object> oMap,
+			Map<Address, Object> logLikelihoods,
 			Address observeAddress,
 			Distribution distribution,
 			Object observation) {
-		oMap.put(observeAddress, distribution.logProb(observation));
+		logLikelihoods.put(observeAddress, distribution.logProb(observation));
 		machine.send(observation);
 	}
 
 	private static void processSample(Random rng,
-			Address addressToReuse,
-			Map<Address, Object> cache,
-			Map<Address, Object> xMap,
-			Map<Address, Object> sMap,
+			Address proposalAddress,
+			Map<Address, Object> currentSamples,
+			Map<Address, Object> samples,
+			Map<Address, Object> logPriors,
 			Machine machine,
 			Address sampleAddress,
 			Distribution distribution) {
-		if (sampleAddress.equals(addressToReuse) || !( cache.containsKey(sampleAddress) )) {
-			xMap.put(sampleAddress, distribution.sample(rng));
+		if (sampleAddress.equals(proposalAddress) ||
+			!( currentSamples.containsKey(sampleAddress) )) {
+			samples.put(sampleAddress, distribution.sample(rng));
 		}
 		else {
-			xMap.put(sampleAddress, cache.get(sampleAddress));
+			samples.put(sampleAddress, currentSamples.get(sampleAddress));
 		}
-		processObservation(machine, sMap, sampleAddress, distribution, xMap.get(sampleAddress));
+		processObservation(machine,
+						   logPriors,
+						   sampleAddress,
+						   distribution,
+						   samples.get(sampleAddress));
 	}
 
-	private static double mhLogAlpha(SSMHTraceResult current,
-			SSMHTraceResult proposed,
-			Address a0) {
+	private static double calculateLogAcceptanceRatio(Trace currentTrace,
+			Trace proposedTrace,
+			Address proposalAddress) {
 
-		Map<Address, Object> X = current.xMap();
-		Map<Address, Object> X2 = proposed.xMap();
-		Map<Address, Object> S = current.sMap();
-		Map<Address, Object> S2 = proposed.sMap();
-		Map<Address, Object> O = current.oMap();
-		Map<Address, Object> O2 = proposed.oMap();
+		Map<Address, Object> currentSamples = currentTrace.samples();
+		Map<Address, Object> proposedSamples = proposedTrace.samples();
 
-		Set<Address> fwd = new HashSet<>();
-		fwd.add(a0);
-		for (Address key : X2.keySet()) {
-			if (!X.containsKey(key)) {
-				fwd.add(key);
+		Set<Address> forwardProposalSet = computeProposalSet(proposedSamples.keySet(),
+															 currentSamples.keySet(),
+															 proposalAddress);
+		Set<Address> reverseProposalSet = computeProposalSet(currentSamples.keySet(),
+															 proposedSamples.keySet(),
+															 proposalAddress);
+
+		double proposedLogProb = sumLogProbabilities(proposedTrace.logPriors(),
+													 proposedTrace.logLikelihoods(),
+													 forwardProposalSet);
+		double currentLogProb = sumLogProbabilities(currentTrace.logPriors(),
+													currentTrace.logLikelihoods(),
+													reverseProposalSet);
+
+		return ( Math.log(currentSamples.size()) - Math.log(proposedSamples.size()) ) +
+			   ( proposedLogProb - currentLogProb );
+	}
+
+	private static Set<Address> computeProposalSet(Set<Address> sourceKeys,
+			Set<Address> targetKeys,
+			Address proposalAddress) {
+		Set<Address> proposalSet = new HashSet<>(sourceKeys);
+		proposalSet.removeAll(targetKeys);
+		proposalSet.add(proposalAddress);
+		return proposalSet;
+	}
+
+	private static double sumLogProbabilities(Map<Address, Object> logPriors,
+			Map<Address, Object> logLikelihoods,
+			Set<Address> excludedAddresses) {
+		double sum = 0.0;
+		for (Map.Entry<Address, Object> entry : logPriors.entrySet()) {
+			if (!excludedAddresses.contains(entry.getKey())) {
+				sum += ( (Number) entry.getValue() ).doubleValue();
 			}
 		}
-
-		Set<Address> rev = new HashSet<>();
-		rev.add(a0);
-		for (Address key : X.keySet()) {
-			if (!X2.containsKey(key)) {
-				rev.add(key);
-			}
+		for (Object val : logLikelihoods.values()) {
+			sum += ( (Number) val ).doubleValue();
 		}
-
-		double num = 0.0;
-		for (Map.Entry<Address, Object> entry : S2.entrySet()) {
-			if (!fwd.contains(entry.getKey())) {
-				num += ( (Number) entry.getValue() ).doubleValue();
-			}
-		}
-		for (Object val : O2.values()) {
-			num += ( (Number) val ).doubleValue();
-		}
-
-		double den = 0.0;
-		for (Map.Entry<Address, Object> entry : S.entrySet()) {
-			if (!rev.contains(entry.getKey())) {
-				den += ( (Number) entry.getValue() ).doubleValue();
-			}
-		}
-		for (Object val : O.values()) {
-			den += ( (Number) val ).doubleValue();
-		}
-
-		return ( Math.log(X.size()) - Math.log(X2.size()) ) + ( num - den );
+		return sum;
 	}
 
 	@Override
 	public Double run(int iterations) {
 		int warmup = 3000;
 
-		SSMHTraceResult currentTraceResult;
-		currentTraceResult = runWithTrace(rng, null, new HashMap<>());
+		Trace currentTrace;
+		currentTrace = runTrace(rng, null, new HashMap<>());
 
 		ArrayList<Double> results = new ArrayList<>();
 
 		for (int stepNumber = 0; stepNumber < iterations + warmup; stepNumber++) {
-			currentTraceResult = performInferenceStep(currentTraceResult);
+			currentTrace = performInferenceStep(currentTrace);
 
 			if (stepNumber >= warmup) {
-				results.add(( (Number) currentTraceResult.value() ).doubleValue());
+				results.add(( (Number) currentTrace.returnValue() ).doubleValue());
 			}
 		}
 
 		return results.stream().mapToDouble(Double::doubleValue).average().orElse(Double.NaN);
 	}
 
-	private SSMHTraceResult runWithTrace(Random rng,
-			Address addressToReuse,
-			Map<Address, Object> cache) {
+	private Trace runTrace(Random rng,
+			Address proposalAddress,
+			Map<Address, Object> currentSamples) {
 
 		Machine machine = initializeMachine();
 
-		Map<Address, Object> xMap = new HashMap<>();
-		Map<Address, Object> sMap = new HashMap<>();
-		Map<Address, Object> oMap = new HashMap<>();
+		Map<Address, Object> samples = new HashMap<>();
+		Map<Address, Object> logPriors = new HashMap<>();
+		Map<Address, Object> logLikelihoods = new HashMap<>();
 
 		while (true) {
 			Message message = machine.resume();
 
-			SSMHTraceResult returnValue = processMessage(rng,
-														 addressToReuse,
-														 cache,
-														 message,
-														 xMap,
-														 sMap,
-														 machine,
-														 oMap);
+			Trace returnValue = processMessage(rng,
+											   proposalAddress,
+											   currentSamples,
+											   message,
+											   samples,
+											   logPriors,
+											   machine,
+											   logLikelihoods);
 			if (returnValue != null) return returnValue;
 		}
 	}
 
-	private SSMHTraceResult performInferenceStep(SSMHTraceResult currentTraceResult) {
-		Map<Address, Object> currentXMap = currentTraceResult.xMap();
-		Address a0 = getRandomAddress(currentXMap);
+	private Trace performInferenceStep(Trace currentTrace) {
+		Map<Address, Object> currentSamples = currentTrace.samples();
+		Address proposalAddress = getRandomAddress(currentSamples);
+		Trace proposedTrace = runTrace(rng, proposalAddress, currentSamples);
+		currentTrace = updateTrace(currentTrace, proposedTrace, proposalAddress);
 
-		SSMHTraceResult candidateTraceResult = runWithTrace(rng, a0, currentXMap);
-
-		currentTraceResult = updateTraceResult(currentTraceResult, candidateTraceResult, a0);
-
-		return currentTraceResult;
+		return currentTrace;
 	}
 
-	private Address getRandomAddress(Map<Address, Object> anAddressMap) {
-		List<Address> addresses = new ArrayList<>(anAddressMap.keySet());
+	private Address getRandomAddress(Map<Address, Object> samples) {
+		List<Address> addresses = new ArrayList<>(samples.keySet());
 		int randomIndex = rng.nextInt(addresses.size());
 		return addresses.get(randomIndex);
 	}
 
-	private SSMHTraceResult updateTraceResult(SSMHTraceResult currentTraceResult,
-			SSMHTraceResult candidateTraceResult,
-			Address a0) {
-		double logAlpha = mhLogAlpha(currentTraceResult, candidateTraceResult, a0);
-		if (Math.log(rng.nextDouble()) < logAlpha) {
-			currentTraceResult = candidateTraceResult;
+	private Trace updateTrace(Trace currentTrace, Trace proposedTrace, Address proposalAddress) {
+		double logAcceptanceRatio = calculateLogAcceptanceRatio(currentTrace,
+																proposedTrace,
+																proposalAddress);
+		if (Math.log(rng.nextDouble()) < logAcceptanceRatio) {
+			currentTrace = proposedTrace;
 		}
-		return currentTraceResult;
+		return currentTrace;
 	}
 
-	private record SSMHTraceResult(
-			Object value,
-			Map<Address, Object> xMap,
-			Map<Address, Object> sMap,
-			Map<Address, Object> oMap) { }
+	private record Trace(
+			Object returnValue,
+			Map<Address, Object> samples,
+			Map<Address, Object> logPriors,
+			Map<Address, Object> logLikelihoods) { }
 }
