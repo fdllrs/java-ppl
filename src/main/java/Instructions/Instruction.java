@@ -6,7 +6,7 @@ import core.Machine;
 
 public abstract class Instruction {
 
-	Environment environment = null;
+	Environment environment;
 	Address address;
 
 	public abstract void executedBy(Machine machine);

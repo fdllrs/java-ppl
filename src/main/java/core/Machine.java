@@ -18,11 +18,11 @@ public class Machine {
 
 	private Message pendingMessage;
 
-	public Machine(Deque<Instruction> instructions) {
-		controlStack = instructions;
-		valueStack = new java.util.ArrayDeque<>();
-		rng = new Random();
-		environment = new Environment();
+	public Machine(Deque<Instruction> instructions, Environment environment, Random rng) {
+		this.controlStack = instructions;
+		this.valueStack = new java.util.ArrayDeque<>();
+		this.environment = environment;
+		this.rng = rng;
 
 		logWeight = 0;
 	}
@@ -75,7 +75,7 @@ public class Machine {
 		}
 	}
 
-	private void pushBody(List<Expression> body, Environment environment, Address address) {
+	public void pushBody(List<Expression> body, Environment environment, Address address) {
 
 		List<Instruction> instructions = new ArrayList<>();
 		for (int i = 0; i < body.size() - 1; i++) {
@@ -104,6 +104,7 @@ public class Machine {
 		Collections.reverse(args);
 
 		Object f = valueStack.pop();
+		// TODO: MOVER ESTO A CLASE CLOSURE. HACER JERARQUIA CON PRIMITIVEFUNCTION
 		if (f instanceof Closure(
 				List<String> functionParams, List<Expression> body, Environment environment1
 		)) {
@@ -120,7 +121,82 @@ public class Machine {
 	}
 
 	private Object applyPrimitive(Object f, List<Object> args) {
-		throw new RuntimeException("not yet implemented");
+		if (!( f instanceof String name )) {
+			throw new RuntimeException("Expected primitive name as string, got: " + f);
+		}
+		switch (name) {
+			case "+": {
+				double sum = 0;
+				for (Object arg : args) {
+					sum += ( (Number) arg ).doubleValue();
+				}
+				if (sum == (long) sum) {
+					return (long) sum;
+				}
+				return sum;
+			}
+			case "-": {
+				if (args.isEmpty()) return 0.0;
+				if (args.size() == 1) return -( (Number) args.getFirst() ).doubleValue();
+				double diff = ( (Number) args.getFirst() ).doubleValue();
+				for (int i = 1; i < args.size(); i++) {
+					diff -= ( (Number) args.get(i) ).doubleValue();
+				}
+				return diff;
+			}
+			case "*": {
+				if (args.isEmpty()) return 1.0;
+				double prod = 1.0;
+				for (Object arg : args) {
+					prod *= ( (Number) arg ).doubleValue();
+				}
+				return prod;
+			}
+			case "/": {
+				if (args.isEmpty()) return 1.0;
+				if (args.size() == 1) return 1.0 / ( (Number) args.getFirst() ).doubleValue();
+				double quotient = ( (Number) args.getFirst() ).doubleValue();
+				for (int i = 1; i < args.size(); i++) {
+					quotient /= ( (Number) args.get(i) ).doubleValue();
+				}
+				return quotient;
+			}
+			case ">": {
+				if (args.size() != 2) throw new IllegalArgumentException("> expects 2 arguments");
+				return ( (Number) args.get(0) ).doubleValue() >
+					   ( (Number) args.get(1) ).doubleValue();
+			}
+			case "<": {
+				if (args.size() != 2) throw new IllegalArgumentException("< expects 2 arguments");
+				return ( (Number) args.get(0) ).doubleValue() <
+					   ( (Number) args.get(1) ).doubleValue();
+			}
+			case "=":
+			case "==": {
+				if (args.size() != 2) throw new IllegalArgumentException("= expects 2 arguments");
+				Object a = args.get(0);
+				Object b = args.get(1);
+				if (a instanceof Number && b instanceof Number) {
+					return ( (Number) a ).doubleValue() == ( (Number) b ).doubleValue();
+				}
+				return Objects.equals(a, b);
+			}
+			case "normal": {
+				if (args.size() != 2) throw new IllegalArgumentException(
+						"normal distribution expects 2 arguments (mu, sigma)");
+				double mu = ( (Number) args.get(0) ).doubleValue();
+				double sigma = ( (Number) args.get(1) ).doubleValue();
+				return new distributions.Normal(mu, sigma);
+			}
+			case "bernoulli": {
+				if (args.size() != 1) throw new IllegalArgumentException(
+						"bernoulli distribution expects 1 argument (p)");
+				double p = ( (Number) args.getFirst() ).doubleValue();
+				return new distributions.Bernoulli(p);
+			}
+			default:
+				throw new RuntimeException("Primitive not implemented: " + name);
+		}
 	}
 
 	public void executeIfK(IfK ifK) {
@@ -152,11 +228,11 @@ public class Machine {
 	}
 
 	public void executeObserveK(ObserveK observeK) {
-
 		Address address = observeK.getAddress();
+		Object value = valueStack.pop();
 		Object distribution = valueStack.pop();
 
-		pendingMessage = new Observe(address, distribution, this);
+		pendingMessage = new Observe(address, distribution, value, this);
 	}
 
 	public void fork() {
@@ -224,5 +300,21 @@ public class Machine {
 		}
 		Address fnAddr = address.append(AddressTag.FN, 0);
 		controlStack.push(new EvaluateK(operator, environment, fnAddr));
+	}
+
+	public void evaluateLet(List<Object> binds,
+			List<Expression> body,
+			Environment environment,
+			Address address) {
+		if (!binds.isEmpty()) {
+			controlStack.push(new LetK(binds, 0, body, environment, address));
+			Expression expressionToEvaluate = (Expression) binds.get(1);
+
+			Address newAddress = address.append(AddressTag.LET, 0);
+			controlStack.push(new EvaluateK(expressionToEvaluate, environment, newAddress));
+		}
+		else {
+			this.pushBody(body, environment, address);
+		}
 	}
 }

@@ -7,7 +7,6 @@ import core.Machine;
 
 public class EvaluateK extends Instruction {
 	Expression expression;
-	Environment environment;
 
 	public EvaluateK(Expression expression, Environment environment, Address addresses) {
 		this.expression = expression;
