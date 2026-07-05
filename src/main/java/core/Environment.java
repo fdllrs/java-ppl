@@ -4,27 +4,24 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class Environment {
-
-	public Map<String, Object> variables = new HashMap<>();
+	private final Map<String, Object> variables = new HashMap<>();
 
 	public Environment() {
 
 	}
 
 	public Environment(Environment environment) {
-		variables = new HashMap<>(environment.variables);
-		//TODO: deep copy
+		for (String name : environment.variables.keySet()) {
+			variables.put(name, environment.variables.get(name));
+			// habría que hacer deep copy si incluyéramos tipos de datos mutables, acá no hace
+			// falta
+		}
 	}
 
-	public boolean contains(String name) {
-		return variables.containsKey(name);
-	}
+	public boolean contains(String name) { return variables.containsKey(name); }
 
-	public void add(String e, Object value) {
-		variables.put(e, value);
-	}
+	public void add(String name, Object value) { variables.put(name, value); }
 
-	public Object lookup(String name) {
-		return variables.get(name);
-	}
+	public Object lookup(String name) { return variables.get(name); }
 }
+
