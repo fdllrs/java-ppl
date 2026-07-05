@@ -12,6 +12,7 @@ import java.util.Random;
 public class LikelihoodWeighting extends InferenceEngine {
 
 	private final int iterations;
+	private ArrayList<Double> weights;
 
 	public LikelihoodWeighting(List<Expression> program, Random rng, int iterations) {
 		super(program, rng);
@@ -28,30 +29,18 @@ public class LikelihoodWeighting extends InferenceEngine {
 			runIteration(values, logWeights);
 		}
 
-		return weightValues(logWeights, values);
+		this.weights = softmax(logWeights);
+		return values;
+	}
+
+	public ArrayList<Double> getWeights() {
+		return weights;
 	}
 
 	private void runIteration(List<Double> values, List<Double> logWeights) {
 		MachineResult result = executeLikelihoodWeighting();
 		values.add(( (Number) result.returnValue() ).doubleValue());
 		logWeights.add(result.logWeight());
-	}
-
-	public static ArrayList<Double> weightValues(ArrayList<Double> logWeights,
-			ArrayList<Double> values) {
-
-		ArrayList<Double> softMax = softmax(logWeights);
-		for (int i = 0; i < values.size(); i++) {
-			values.set(i, values.get(i) * softMax.get(i));
-		}
-
-		return values;
-
-		//		double mean = 0;
-		//		for (int i = 0; i < values.size(); i++) {
-		//			mean += values.get(i) * softMax.get(i);
-		//		}
-		//		return mean;
 	}
 
 	private MachineResult executeLikelihoodWeighting() {

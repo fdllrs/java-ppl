@@ -5,9 +5,9 @@ import Instructions.Instruction;
 import ast.DefnExpression;
 import ast.Expression;
 import core.Address;
-import core.Closure;
 import core.Environment;
 import core.Machine;
+import core.callable.Closure;
 
 import java.util.*;
 

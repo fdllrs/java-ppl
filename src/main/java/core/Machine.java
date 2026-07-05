@@ -2,6 +2,8 @@ package core;
 
 import Instructions.*;
 import ast.Expression;
+import core.callable.Callable;
+import core.callable.Closure;
 import distributions.Distribution;
 import messaging.Done;
 import messaging.Message;
@@ -48,13 +50,17 @@ public class Machine {
 			instruction.executedBy(this);
 
 			if (pendingMessage != null) {
-				Message msg = pendingMessage;
-				pendingMessage = null;
-				return msg;
+				return getMessage();
 			}
 		}
 
 		return new Done(valueStack.pop());
+	}
+
+	private Message getMessage() {
+		Message msg = pendingMessage;
+		pendingMessage = null;
+		return msg;
 	}
 
 	public Machine fork(Random newRng) {
@@ -81,16 +87,16 @@ public class Machine {
 		Address address = letK.getAddress();
 		List<Expression> body = letK.getBody();
 
-		String bind = (String) binds.get(2 * index);
+		String bind = (String) letK.getBindAtIndex(2 * index);
 
 		env.add(bind, valueStack.pop());
 
 		if (2 * ( index + 1 ) < binds.size()) {
 			controlStack.push(new LetK(binds, index + 1, body, env, address));
-			Expression expressionToEvaluate = (Expression) binds.get(2 * ( index + 1 ) + 1);
+			Expression exprToEvaluate = (Expression) letK.getBindAtIndex(2 * ( index + 1 ) + 1);
 
 			Address newAddress = address.append(AddressTag.LET, 2 * ( index + 1 ));
-			controlStack.push(new EvaluateK(expressionToEvaluate, env, newAddress));
+			controlStack.push(new EvaluateK(exprToEvaluate, env, newAddress));
 		}
 		else {
 			this.pushBody(body, env, address);
@@ -134,122 +140,31 @@ public class Machine {
 		}
 	}
 
-	public void applyPrimitive(List<Object> args, String operationName) {
-
-		Object result = evaluateOperation(args, operationName);
-		valueStack.push(result);
-	}
-
-	private static Object evaluateOperation(List<Object> args, String name) {
-		switch (name) {
-			case "+": {
-				double sum = 0;
-				for (Object arg : args) {
-					sum += ( (Number) arg ).doubleValue();
-				}
-				if (sum == (long) sum) {
-					return (long) sum;
-				}
-				return sum;
-			}
-			case "-": {
-				if (args.isEmpty()) return 0.0;
-				if (args.size() == 1) return -( (Number) args.getFirst() ).doubleValue();
-				double diff = ( (Number) args.getFirst() ).doubleValue();
-				for (int i = 1; i < args.size(); i++) {
-					diff -= ( (Number) args.get(i) ).doubleValue();
-				}
-				return diff;
-			}
-			case "*": {
-				if (args.isEmpty()) return 1.0;
-				double prod = 1.0;
-				for (Object arg : args) {
-					prod *= ( (Number) arg ).doubleValue();
-				}
-				return prod;
-			}
-			case "/": {
-				if (args.isEmpty()) return 1.0;
-				if (args.size() == 1) return 1.0 / ( (Number) args.getFirst() ).doubleValue();
-				double quotient = ( (Number) args.getFirst() ).doubleValue();
-				for (int i = 1; i < args.size(); i++) {
-					quotient /= ( (Number) args.get(i) ).doubleValue();
-				}
-				return quotient;
-			}
-			case ">": {
-				if (args.size() != 2) throw new IllegalArgumentException("> expects 2 arguments");
-				return ( (Number) args.get(0) ).doubleValue() >
-					   ( (Number) args.get(1) ).doubleValue();
-			}
-			case "<": {
-				if (args.size() != 2) throw new IllegalArgumentException("< expects 2 arguments");
-				return ( (Number) args.get(0) ).doubleValue() <
-					   ( (Number) args.get(1) ).doubleValue();
-			}
-			case "=":
-			case "==": {
-				if (args.size() != 2) throw new IllegalArgumentException("= expects 2 arguments");
-				Object a = args.get(0);
-				Object b = args.get(1);
-				if (a instanceof Number && b instanceof Number) {
-					return ( (Number) a ).doubleValue() == ( (Number) b ).doubleValue();
-				}
-				return Objects.equals(a, b);
-			}
-			case "normal": {
-				if (args.size() != 2) throw new IllegalArgumentException(
-						"normal distribution expects 2 arguments (mu, sigma)");
-				double mu = ( (Number) args.get(0) ).doubleValue();
-				double sigma = ( (Number) args.get(1) ).doubleValue();
-				return new distributions.Normal(mu, sigma);
-			}
-			case "bernoulli": {
-				if (args.size() != 1) throw new IllegalArgumentException(
-						"bernoulli distribution expects 1 argument (p)");
-				double p = ( (Number) args.getFirst() ).doubleValue();
-				return new distributions.Bernoulli(p);
-			}
-			default:
-				throw new RuntimeException("Primitive not implemented: " + name);
-		}
-	}
-
 	public void executeIfK(IfK ifK) {
-		Expression thenExpression = ifK.getThenExpression();
-		Expression elseExpression = ifK.getElseExpression();
-
-		Environment env = ifK.getEnvironment();
 		Address address = ifK.getAddress();
 
 		Expression branch;
 		AddressTag tag;
 		if ((boolean) valueStack.pop()) {
-			branch = thenExpression;
+			branch = ifK.getThenExpression();
 			tag = AddressTag.THEN;
 		}
 		else {
-			branch = elseExpression;
+			branch = ifK.getElseExpression();
 			tag = AddressTag.ELSE;
 		}
-		Address newAddress = address.append(tag, 0);
-		controlStack.push(new EvaluateK(branch, env, newAddress));
+		controlStack.push(new EvaluateK(branch, ifK.getEnvironment(), address.append(tag, 0)));
 	}
 
 	public void executeSampleK(SampleK sampleK) {
-		Address address = sampleK.getAddress();
 		Distribution distribution = (Distribution) valueStack.pop();
-
-		pendingMessage = new Sample(address, distribution);
+		pendingMessage = new Sample(sampleK.getAddress(), distribution);
 	}
 
 	public void executeObserveK(ObserveK observeK) {
-		Address address = observeK.getAddress();
 		Object value = valueStack.pop();
 		Distribution distribution = (Distribution) valueStack.pop();
-
-		pendingMessage = new Observe(address, distribution, value);
+		pendingMessage = new Observe(observeK.getAddress(), distribution, value);
 	}
 
 	public void executeDiscard() {
@@ -257,7 +172,11 @@ public class Machine {
 	}
 
 	public void evaluateSymbol(Object value) {
-		valueStack.push(value);
+		pushResult(value);
+	}
+
+	public void pushResult(Object result) {
+		valueStack.push(result);
 	}
 
 	public void evaluateIf(Expression testExpression,
@@ -271,8 +190,9 @@ public class Machine {
 								  environment,
 								  address));
 
-		Address newAddress = address.append(AddressTag.TEST, 0);
-		controlStack.push(new EvaluateK(testExpression, environment, newAddress));
+		controlStack.push(new EvaluateK(testExpression,
+										environment,
+										address.append(AddressTag.TEST, 0)));
 	}
 
 	public void evaluateObserve(Expression expression1,
@@ -282,22 +202,25 @@ public class Machine {
 
 		controlStack.push(new ObserveK(address));
 
-		Address newAddressValue = address.append(AddressTag.VALUE, 0);
-		controlStack.push(new EvaluateK(expression2, environment, newAddressValue));
+		controlStack.push(new EvaluateK(expression2,
+										environment,
+										address.append(AddressTag.VALUE, 0)));
 
-		Address newAddressDistribution = address.append(AddressTag.DISTRIBUTION, 0);
-		controlStack.push(new EvaluateK(expression1, environment, newAddressDistribution));
+		controlStack.push(new EvaluateK(expression1,
+										environment,
+										address.append(AddressTag.DISTRIBUTION, 0)));
 	}
 
 	public void evaluateSample(Expression expression, Environment environment, Address address) {
 		controlStack.push(new SampleK(address));
 
-		Address newAddressDistribution = address.append(AddressTag.DISTRIBUTION, 0);
-		controlStack.push(new EvaluateK(expression, environment, newAddressDistribution));
+		controlStack.push(new EvaluateK(expression,
+										environment,
+										address.append(AddressTag.DISTRIBUTION, 0)));
 	}
 
 	public void evaluateFn(List<String> params, List<Expression> body, Environment environment) {
-		valueStack.push(new Closure(params, body, environment));
+		pushResult(new Closure(params, body, environment));
 	}
 
 	public void evaluateCall(Expression operator,
@@ -308,11 +231,9 @@ public class Machine {
 		controlStack.push(new CallK(operands.size(), address));
 
 		for (int i = operands.size() - 1; i >= 0; i--) {
-			Address argAddress = address.append(i);
-			controlStack.push(new EvaluateK(operands.get(i), environment, argAddress));
+			controlStack.push(new EvaluateK(operands.get(i), environment, address.append(i)));
 		}
-		Address fnAddr = address.append(AddressTag.FN, 0);
-		controlStack.push(new EvaluateK(operator, environment, fnAddr));
+		controlStack.push(new EvaluateK(operator, environment, address.append(AddressTag.FN, 0)));
 	}
 
 	public void evaluateLet(List<Object> binds,
@@ -323,8 +244,9 @@ public class Machine {
 			controlStack.push(new LetK(binds, 0, body, environment, address));
 			Expression expressionToEvaluate = (Expression) binds.get(1);
 
-			Address newAddress = address.append(AddressTag.LET, 0);
-			controlStack.push(new EvaluateK(expressionToEvaluate, environment, newAddress));
+			controlStack.push(new EvaluateK(expressionToEvaluate,
+											environment,
+											address.append(AddressTag.LET, 0)));
 		}
 		else {
 			this.pushBody(body, environment, address);
@@ -334,7 +256,7 @@ public class Machine {
 	public Random getRng() { return rng; }
 
 	public void send(Object sample) {
-		valueStack.push(sample);
+		pushResult(sample);
 	}
 
 	public void addToLogWeight(double weight) {

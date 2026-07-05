@@ -88,8 +88,13 @@ public class Benchmark {
 			timesMs.add(durationMs);
 
 			double meanEstimate;
-			if (config.name.equals("Likelihood Weighting")) {
-				meanEstimate = results.stream().mapToDouble(Double::doubleValue).sum();
+			if (engine instanceof LikelihoodWeighting lw) {
+				ArrayList<Double> weights = lw.getWeights();
+				double weightedSum = 0.0;
+				for (int j = 0; j < results.size(); j++) {
+					weightedSum += results.get(j) * weights.get(j);
+				}
+				meanEstimate = weightedSum;
 			}
 			else {
 				meanEstimate = results.stream().mapToDouble(Double::doubleValue).average().orElse(

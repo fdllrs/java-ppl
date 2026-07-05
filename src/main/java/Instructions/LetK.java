@@ -8,7 +8,6 @@ import core.Machine;
 import java.util.List;
 
 public class LetK extends Instruction {
-	List<Expression> expressions;
 	int index;
 	List<Object> binds;
 	List<Expression> body;
@@ -25,11 +24,6 @@ public class LetK extends Instruction {
 		this.environment = env;
 	}
 
-	public LetK(int index, List<Expression> expressions) {
-		this.index = index;
-		this.expressions = expressions;
-	}
-
 	@Override
 	public void executedBy(Machine machine) {
 		machine.executeLetK(this);
@@ -39,7 +33,9 @@ public class LetK extends Instruction {
 
 	public int getIndex() { return index; }
 
-	public List<Expression> getExpressions() { return expressions; }
-
 	public List<Expression> getBody() { return body; }
+
+	public Object getBindAtIndex(int index) {
+		return binds.get(index);
+	}
 }
