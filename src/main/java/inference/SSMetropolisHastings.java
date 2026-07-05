@@ -10,8 +10,11 @@ import java.util.*;
 
 public class SSMetropolisHastings extends InferenceEngine {
 
-	public SSMetropolisHastings(List<Expression> program, Random rng) {
+	private final int warmup;
+
+	public SSMetropolisHastings(List<Expression> program, Random rng, int warmup) {
 		super(program, rng);
+		this.warmup = warmup;
 	}
 
 	private static Trace processMessage(Random rng,
@@ -128,23 +131,22 @@ public class SSMetropolisHastings extends InferenceEngine {
 	}
 
 	@Override
-	public Double run(int iterations) {
-		int warmup = 3000;
+	public ArrayList<Double> run(int iterations) {
 
 		Trace currentTrace;
 		currentTrace = runTrace(rng, null, new HashMap<>());
 
 		ArrayList<Double> results = new ArrayList<>();
 
-		for (int stepNumber = 0; stepNumber < iterations + warmup; stepNumber++) {
+		for (int stepNumber = 0; stepNumber < iterations + this.warmup; stepNumber++) {
 			currentTrace = performInferenceStep(currentTrace);
 
-			if (stepNumber >= warmup) {
+			if (stepNumber >= this.warmup) {
 				results.add(( (Number) currentTrace.returnValue() ).doubleValue());
 			}
 		}
 
-		return results.stream().mapToDouble(Double::doubleValue).average().orElse(Double.NaN);
+		return results;
 	}
 
 	private Trace runTrace(Random rng,

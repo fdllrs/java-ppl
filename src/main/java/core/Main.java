@@ -4,6 +4,7 @@ import ast.Expression;
 import inference.InferenceEngine;
 import inference.LikelihoodWeighting;
 import inference.SSMetropolisHastings;
+import inference.SequentialMonteCarlo;
 
 import java.util.List;
 import java.util.Random;
@@ -28,13 +29,23 @@ public class Main {
 		Random random = new Random(5);
 
 		InferenceEngine lw = new LikelihoodWeighting(program, random);
-		double lwMean = lw.run(1000000);
+		double lwMean = lw.run(1000000).stream().mapToDouble(Double::doubleValue).sum();
 
 		System.out.println("LW mean: " + lwMean);
 
-		InferenceEngine ssmh = new SSMetropolisHastings(program, random);
-		double ssmhMean = ssmh.run(1000000);
+		InferenceEngine ssmh = new SSMetropolisHastings(program, random, 3000);
+		double ssmhMean = ssmh.run(1000000)
+							  .stream()
+							  .mapToDouble(Double::doubleValue)
+							  .average()
+							  .orElse(0.0);
 
 		System.out.println("SSMH mean: " + ssmhMean);
+
+		InferenceEngine smc = new SequentialMonteCarlo(program, random, 20000);
+		double smcMean =
+				smc.run(1).stream().mapToDouble(Double::doubleValue).average().orElse(0.0);
+
+		System.out.println("SMC mean: " + smcMean);
 	}
 }

@@ -19,6 +19,18 @@ public class Machine {
 
 	private Message pendingMessage;
 
+	public Machine(Deque<Instruction> controlStack,
+			Deque<Object> valueStack,
+			Environment environment,
+			Random rng,
+			double logWeight) {
+		this.controlStack = controlStack;
+		this.valueStack = valueStack;
+		this.environment = environment;
+		this.rng = rng;
+		this.logWeight = logWeight;
+	}
+
 	public Machine(Deque<Instruction> instructions, Environment environment, Random rng) {
 		this.controlStack = instructions;
 		this.valueStack = new java.util.ArrayDeque<>();
@@ -43,6 +55,15 @@ public class Machine {
 		}
 
 		return new Done(valueStack.pop());
+	}
+
+	public Machine fork(Random newRng) {
+
+		return new Machine(new ArrayDeque<>(controlStack),
+						   new ArrayDeque<>(valueStack),
+						   new Environment(environment),
+						   newRng,
+						   logWeight);
 	}
 
 	public void executeEvaluate(EvaluateK evaluate) {

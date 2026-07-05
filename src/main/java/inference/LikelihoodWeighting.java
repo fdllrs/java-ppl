@@ -16,15 +16,15 @@ public class LikelihoodWeighting extends InferenceEngine {
 	}
 
 	@Override
-	public Double run(int iterations) {
-		List<Double> values = new ArrayList<>();
-		List<Double> logWeights = new ArrayList<>();
+	public ArrayList<Double> run(int iterations) {
+		ArrayList<Double> values = new ArrayList<>();
+		ArrayList<Double> logWeights = new ArrayList<>();
 
 		for (int i = 0; i < iterations; i++) {
 			runIteration(values, logWeights);
 		}
 
-		return calculateWeightedMean(logWeights, values);
+		return weightValues(logWeights, values);
 	}
 
 	private void runIteration(List<Double> values, List<Double> logWeights) {
@@ -33,13 +33,21 @@ public class LikelihoodWeighting extends InferenceEngine {
 		logWeights.add(result.logWeight());
 	}
 
-	private static double calculateWeightedMean(List<Double> logWeights, List<Double> values) {
-		List<Double> softMax = softmax(logWeights);
-		double mean = 0;
+	public static ArrayList<Double> weightValues(ArrayList<Double> logWeights,
+			ArrayList<Double> values) {
+
+		ArrayList<Double> softMax = softmax(logWeights);
 		for (int i = 0; i < values.size(); i++) {
-			mean += values.get(i) * softMax.get(i);
+			values.set(i, values.get(i) * softMax.get(i));
 		}
-		return mean;
+
+		return values;
+
+		//		double mean = 0;
+		//		for (int i = 0; i < values.size(); i++) {
+		//			mean += values.get(i) * softMax.get(i);
+		//		}
+		//		return mean;
 	}
 
 	private MachineResult executeLikelihoodWeighting() {

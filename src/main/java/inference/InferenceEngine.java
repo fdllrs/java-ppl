@@ -20,8 +20,8 @@ public abstract class InferenceEngine {
 		this.rng = rng;
 	}
 
-	public static List<Double> softmax(List<Double> logWeights) {
-		List<Double> probabilities = new ArrayList<>();
+	public static ArrayList<Double> softmax(ArrayList<Double> logWeights) {
+		ArrayList<Double> probabilities = new ArrayList<>();
 
 		double max = logWeights.stream().mapToDouble(Double::doubleValue).max().orElse(0.0);
 
@@ -39,24 +39,16 @@ public abstract class InferenceEngine {
 	}
 
 	protected Machine initializeMachine() {
+		return initializeMachineWithRNG(this.rng);
+	}
+
+	protected Machine initializeMachineWithRNG(Random rng) {
 		assertProgramNotEmpty();
 		Environment initialEnvironment = new Environment();
-		Expression main = null;
-		for (Expression expr : program) {
-			if (expr instanceof DefnExpression(
-					String name, List<String> params, List<Expression> body
-			)) {
-				Closure closure = new Closure(params, body, initialEnvironment);
-				initialEnvironment.add(name, closure);
-			}
-			else {
-				main = expr;
-			}
-		}
-
 		Deque<Instruction> controlStack = new ArrayDeque<>();
-		controlStack.push(new EvaluateK(main, initialEnvironment, new Address()));
 
+		EvaluateK evaluation = buildMainEvaluation(initialEnvironment);
+		controlStack.push(evaluation);
 		return new Machine(controlStack, initialEnvironment, rng);
 	}
 
@@ -66,7 +58,23 @@ public abstract class InferenceEngine {
 		}
 	}
 
-	public abstract Double run(int iterations);
+	protected EvaluateK buildMainEvaluation(Environment environment) {
+		Expression main = null;
+		for (Expression expr : program) {
+			if (expr instanceof DefnExpression(
+					String name, List<String> params, List<Expression> body
+			)) {
+				Closure closure = new Closure(params, body, environment);
+				environment.add(name, closure);
+			}
+			else {
+				main = expr;
+			}
+		}
+		return new EvaluateK(main, environment, new Address());
+	}
+
+	public abstract ArrayList<Double> run(int iterations);
 
 	public record MachineResult(double logWeight, Object returnValue) { }
 }
