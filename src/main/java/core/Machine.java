@@ -97,7 +97,7 @@ public class Machine {
 		}
 	}
 
-	public void pushBody(List<Expression> body, Environment environment, Address address) {
+	private void pushBody(List<Expression> body, Environment environment, Address address) {
 
 		List<Instruction> instructions = new ArrayList<>();
 		for (int i = 0; i < body.size() - 1; i++) {
@@ -126,26 +126,21 @@ public class Machine {
 		Collections.reverse(args);
 
 		Object f = valueStack.pop();
-		// TODO: MOVER ESTO A CLASE CLOSURE. HACER JERARQUIA CON PRIMITIVEFUNCTION
-		if (f instanceof Closure(
-				List<String> functionParams, List<Expression> body, Environment environment1
-		)) {
-			Environment newEnvironment = new Environment(environment1);
-			for (int i = 0; i < paramAmount; i++) {
-				newEnvironment.add(functionParams.get(i), args.get(i));
-			}
-			pushBody(body, newEnvironment, address);
+		if (f instanceof Callable callable) {
+			callable.apply(this, args, address);
 		}
 		else {
-			Object result = applyPrimitive(f, args);
-			valueStack.push(result);
+			throw new RuntimeException("Object is not callable: " + f);
 		}
 	}
 
-	private Object applyPrimitive(Object f, List<Object> args) {
-		if (!( f instanceof String name )) {
-			throw new RuntimeException("Expected primitive name as string, got: " + f);
-		}
+	public void applyPrimitive(List<Object> args, String operationName) {
+
+		Object result = evaluateOperation(args, operationName);
+		valueStack.push(result);
+	}
+
+	private static Object evaluateOperation(List<Object> args, String name) {
 		switch (name) {
 			case "+": {
 				double sum = 0;
@@ -347,4 +342,8 @@ public class Machine {
 	}
 
 	public double getLogWeight() { return logWeight; }
+
+	public void applyClosure(List<Expression> body, Environment newEnvironment, Address address) {
+		this.pushBody(body, newEnvironment, address);
+	}
 }

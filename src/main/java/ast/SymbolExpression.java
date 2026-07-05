@@ -3,13 +3,14 @@ package ast;
 import core.Address;
 import core.Environment;
 import core.Machine;
+import core.PrimitiveFunction;
 
 public record SymbolExpression(String name) implements Expression {
 
 	@Override
 	public void evaluate(Environment environment, Address address, Machine machine) {
 		Object val = environment.lookup(this.name);
-		if (val == null && isPrimitive(this.name)) val = this.name;
+		if (val == null && isPrimitive(this.name)) val = new PrimitiveFunction(this.name);
 
 		if (val != null) {
 			machine.evaluateSymbol(val);
@@ -27,6 +28,6 @@ public record SymbolExpression(String name) implements Expression {
 
 	@Override
 	public String toString() {
-		return this.name;
+		return String.valueOf(this.name);
 	}
 }
