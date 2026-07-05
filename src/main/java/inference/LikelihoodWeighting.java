@@ -33,10 +33,6 @@ public class LikelihoodWeighting extends InferenceEngine {
 		return values;
 	}
 
-	public ArrayList<Double> getWeights() {
-		return weights;
-	}
-
 	private void runIteration(List<Double> values, List<Double> logWeights) {
 		MachineResult result = executeLikelihoodWeighting();
 		values.add(( (Number) result.returnValue() ).doubleValue());
@@ -63,5 +59,9 @@ public class LikelihoodWeighting extends InferenceEngine {
 						throw new RuntimeException("Should not fork in likelihood weighting");
 			}
 		}
+	}
+
+	public ArrayList<Double> getWeights() {
+		return weights;
 	}
 }

@@ -28,39 +28,31 @@ public class TestProgram {
 	}
 
 	public static List<Expression> Ejemplo3() {
-		String program = "(let [mu (sample (normal 0 1))] " +
-						 "  (observe (normal mu 1) 2.3) " +
-						 "  (observe (normal mu 1) 1.7) " +
-						 "  mu)";
+		String program = "(let [mu (sample (normal 0 1))] " + "  (observe (normal mu 1) 2.3) " +
+						 "  (observe (normal mu 1) 1.7) " + "  mu)";
 
 		return Parser.parse(program);
 	}
 
 	public static List<Expression> Ejemplo4() {
-		String program = "(let [mu (sample (normal 1 2))] " +
-						 "  (observe (normal mu 3) 5.0) " +
-						 "  mu)";
+		String program =
+				"(let [mu (sample (normal 1 2))] " + "  (observe (normal mu 3) 5.0) " + "  mu)";
 
 		return Parser.parse(program);
 	}
 
 	public static List<Expression> Ejemplo5() {
-		String program = "(let [biased (sample (bernoulli 0.5)) " +
-						 "      p (if biased 0.8 0.5)] " +
-						 "  (observe (bernoulli p) 1) " +
-						 "  (observe (bernoulli p) 1) " +
-						 "  (observe (bernoulli p) 0) " +
-						 "  (if biased 1 0))";
+		String program =
+				"(let [biased (sample (bernoulli 0.5)) " + "      p (if biased 0.8 0.5)] " +
+				"  (observe (bernoulli p) 1) " + "  (observe (bernoulli p) 1) " +
+				"  (observe (bernoulli p) 0) " + "  (if biased 1 0))";
 
 		return Parser.parse(program);
 	}
 
 	public static List<Expression> Ejemplo6() {
-		String program = "(let [x (sample (normal 0 1)) " +
-						 "      y (sample (normal 0 2)) " +
-						 "      z (+ x y)] " +
-						 "  (observe (normal z 0.1) 3.0) " +
-						 "  x)";
+		String program = "(let [x (sample (normal 0 1)) " + "      y (sample (normal 0 2)) " +
+						 "      z (+ x y)] " + "  (observe (normal z 0.1) 3.0) " + "  x)";
 
 		return Parser.parse(program);
 	}
