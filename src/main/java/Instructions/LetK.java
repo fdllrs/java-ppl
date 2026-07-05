@@ -9,15 +9,15 @@ import java.util.List;
 
 public class LetK extends Instruction {
 	int index;
-	List<Object> binds;
+	List<Binding> bindings;
 	List<Expression> body;
 
-	public LetK(List<Object> binds,
+	public LetK(List<Binding> binds,
 			int index,
 			List<Expression> body,
 			Environment env,
 			Address address) {
-		this.binds = binds;
+		this.bindings = binds;
 		this.index = index;
 		this.body = body;
 		this.address = address;
@@ -29,13 +29,11 @@ public class LetK extends Instruction {
 		machine.executeLetK(this);
 	}
 
-	public List<Object> getBinds() { return binds; }
+	public List<Binding> getBindings() { return bindings; }
 
 	public int getIndex() { return index; }
 
 	public List<Expression> getBody() { return body; }
 
-	public Object getBindAtIndex(int index) {
-		return binds.get(index);
-	}
+	public record Binding(String variableName, Expression valueExpression) { }
 }

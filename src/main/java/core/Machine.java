@@ -1,6 +1,7 @@
 package core;
 
 import Instructions.*;
+import Instructions.LetK.Binding;
 import ast.Expression;
 import core.callable.Callable;
 import core.callable.Closure;
@@ -82,21 +83,18 @@ public class Machine {
 
 	public void executeLetK(LetK letK) {
 		Environment env = letK.getEnvironment();
-		List<Object> binds = letK.getBinds();
 		int index = letK.getIndex();
 		Address address = letK.getAddress();
 		List<Expression> body = letK.getBody();
 
-		String bind = (String) letK.getBindAtIndex(2 * index);
+		Binding binding = letK.getBindings().get(index);
+		env.add(binding.variableName(), valueStack.pop());
+		if (index + 1 < letK.getBindings().size()) {
+			controlStack.push(new LetK(letK.getBindings(), index + 1, body, env, address));
+			Expression nextExpression = letK.getBindings().get(index + 1).valueExpression();
 
-		env.add(bind, valueStack.pop());
-
-		if (2 * ( index + 1 ) < binds.size()) {
-			controlStack.push(new LetK(binds, index + 1, body, env, address));
-			Expression exprToEvaluate = (Expression) letK.getBindAtIndex(2 * ( index + 1 ) + 1);
-
-			Address newAddress = address.append(AddressTag.LET, 2 * ( index + 1 ));
-			controlStack.push(new EvaluateK(exprToEvaluate, env, newAddress));
+			Address newAddress = address.append(AddressTag.LET, index + 2);
+			controlStack.push(new EvaluateK(nextExpression, env, newAddress));
 		}
 		else {
 			this.pushBody(body, env, address);
@@ -236,13 +234,13 @@ public class Machine {
 		controlStack.push(new EvaluateK(operator, environment, address.append(AddressTag.FN, 0)));
 	}
 
-	public void evaluateLet(List<Object> binds,
+	public void evaluateLet(List<Binding> binds,
 			List<Expression> body,
 			Environment environment,
 			Address address) {
 		if (!binds.isEmpty()) {
 			controlStack.push(new LetK(binds, 0, body, environment, address));
-			Expression expressionToEvaluate = (Expression) binds.get(1);
+			Expression expressionToEvaluate = binds.getFirst().valueExpression();
 
 			controlStack.push(new EvaluateK(expressionToEvaluate,
 											environment,

@@ -1,5 +1,6 @@
 package core;
 
+import Instructions.LetK.Binding;
 import ast.*;
 
 import java.util.ArrayList;
@@ -145,12 +146,11 @@ public class Parser {
 			switch (head) {
 				case "let" -> {
 					List<?> bindsList = (List<?>) list.get(1);
-					List<Object> binds = new ArrayList<>();
+					List<Binding> binds = new ArrayList<>();
 					for (int i = 0; i < bindsList.size(); i += 2) {
 						Symbol varSym = (Symbol) bindsList.get(i);
 						Expression valExpr = toExpression(bindsList.get(i + 1));
-						binds.add(varSym.name);
-						binds.add(valExpr);
+						binds.add(new Binding(varSym.name, valExpr));
 					}
 					List<Expression> body = new ArrayList<>();
 					for (int i = 2; i < list.size(); i++) {
