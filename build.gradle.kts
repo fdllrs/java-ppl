@@ -23,3 +23,10 @@ dependencies {
 tasks.test {
     useJUnitPlatform()
 }
+
+tasks.register<JavaExec>("benchmark") {
+    group = "application"
+    description = "Runs the PPL inference benchmarks."
+    classpath = sourceSets["test"].runtimeClasspath
+    mainClass.set("core.Benchmark")
+}
