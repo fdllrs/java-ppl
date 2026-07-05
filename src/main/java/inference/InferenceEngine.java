@@ -74,7 +74,7 @@ public abstract class InferenceEngine {
 		return new EvaluateK(main, environment, new Address());
 	}
 
-	public abstract ArrayList<Double> run(int iterations);
+	public abstract ArrayList<Double> run();
 
 	public record MachineResult(double logWeight, Object returnValue) { }
 }

@@ -11,10 +11,12 @@ import java.util.*;
 public class SSMetropolisHastings extends InferenceEngine {
 
 	private final int warmup;
+	private final int iterations;
 
-	public SSMetropolisHastings(List<Expression> program, Random rng, int warmup) {
+	public SSMetropolisHastings(List<Expression> program, Random rng, int warmup, int iterations) {
 		super(program, rng);
 		this.warmup = warmup;
+		this.iterations = iterations;
 	}
 
 	private static Trace processMessage(Random rng,
@@ -131,7 +133,7 @@ public class SSMetropolisHastings extends InferenceEngine {
 	}
 
 	@Override
-	public ArrayList<Double> run(int iterations) {
+	public ArrayList<Double> run() {
 
 		Trace currentTrace;
 		currentTrace = runTrace(rng, null, new HashMap<>());

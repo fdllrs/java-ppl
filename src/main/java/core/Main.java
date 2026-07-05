@@ -28,13 +28,13 @@ public class Main {
 	private static void executeSamplingMethods(List<Expression> program) {
 		Random random = new Random(5);
 
-		InferenceEngine lw = new LikelihoodWeighting(program, random);
-		double lwMean = lw.run(1000000).stream().mapToDouble(Double::doubleValue).sum();
+		InferenceEngine lw = new LikelihoodWeighting(program, random, 1000000);
+		double lwMean = lw.run().stream().mapToDouble(Double::doubleValue).sum();
 
 		System.out.println("LW mean: " + lwMean);
 
-		InferenceEngine ssmh = new SSMetropolisHastings(program, random, 3000);
-		double ssmhMean = ssmh.run(1000000)
+		InferenceEngine ssmh = new SSMetropolisHastings(program, random, 3000, 1000000);
+		double ssmhMean = ssmh.run()
 							  .stream()
 							  .mapToDouble(Double::doubleValue)
 							  .average()
@@ -43,8 +43,7 @@ public class Main {
 		System.out.println("SSMH mean: " + ssmhMean);
 
 		InferenceEngine smc = new SequentialMonteCarlo(program, random, 20000);
-		double smcMean =
-				smc.run(1).stream().mapToDouble(Double::doubleValue).average().orElse(0.0);
+		double smcMean = smc.run().stream().mapToDouble(Double::doubleValue).average().orElse(0.0);
 
 		System.out.println("SMC mean: " + smcMean);
 	}

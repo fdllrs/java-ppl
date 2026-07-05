@@ -22,7 +22,7 @@ public class SequentialMonteCarlo extends InferenceEngine {
 	}
 
 	@Override
-	public ArrayList<Double> run(int iterations) {
+	public ArrayList<Double> run() {
 
 		ArrayList<Machine> particles = initializeParticles();
 

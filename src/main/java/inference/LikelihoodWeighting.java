@@ -11,12 +11,16 @@ import java.util.Random;
 
 public class LikelihoodWeighting extends InferenceEngine {
 
-	public LikelihoodWeighting(List<Expression> program, Random rng) {
+	private final int iterations;
+
+	public LikelihoodWeighting(List<Expression> program, Random rng, int iterations) {
 		super(program, rng);
+
+		this.iterations = iterations;
 	}
 
 	@Override
-	public ArrayList<Double> run(int iterations) {
+	public ArrayList<Double> run() {
 		ArrayList<Double> values = new ArrayList<>();
 		ArrayList<Double> logWeights = new ArrayList<>();
 
