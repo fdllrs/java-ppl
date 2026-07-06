@@ -15,7 +15,7 @@ public class Benchmark {
 	private static final int WARMUP_RUNS = 2;
 	private static final int MEASUREMENT_RUNS = 5;
 
-	static void main() {
+	public static void main(String[] args) {
 		runBenchmarks();
 	}
 

@@ -6,99 +6,77 @@ import inference.LikelihoodWeighting;
 import inference.SSMetropolisHastings;
 import inference.SequentialMonteCarlo;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
 public class Main {
 
-	static void main() {
-		System.out.println("\n====== EJEMPLO 1: conj ====== \n");
-		System.out.println("Exact mean: 1.150, exact stddev: 0.707");
-		List<Expression> ejemplo1 = TestProgram.Ejemplo1();
-		executeSamplingMethods(ejemplo1);
+	public static void main(String[] args) {
+		runExample("EJEMPLO 1: conj", "Exact mean: 1.150, exact stddev: 0.707", TestProgram.Ejemplo1());
+		runExample("EJEMPLO 2: bits", "Exact mean: 5.014, exact stddev: 1.146", TestProgram.Ejemplo2());
+		runExample("EJEMPLO 3: multi-normal", "Exact mean: 1.333, exact stddev: 0.577", TestProgram.Ejemplo3());
+		runExample("EJEMPLO 4: normal-prior", "Exact mean: 2.231, exact stddev: 1.664", TestProgram.Ejemplo4());
+		runExample("EJEMPLO 5: coin-flips", "Exact mean: 0.506, exact stddev: 0.500", TestProgram.Ejemplo5());
+		runExample("EJEMPLO 6: signal-noise", "Exact mean: 0.599, exact stddev: 0.895", TestProgram.Ejemplo6());
 
-		System.out.println("\n====== EJEMPLO 2: bits ====== \n");
-		System.out.println("Exact mean: 5.014");
-		List<Expression> ejemplo2 = TestProgram.Ejemplo2();
-		executeSamplingMethods(ejemplo2);
+		System.out.println("\n(Tip: Run './gradlew benchmark' to execute the performance benchmarks)");
+	}
 
-		System.out.println("\n====== EJEMPLO 3: multi-normal ====== \n");
-		System.out.println("Exact mean: 1.333");
-		List<Expression> ejemplo3 = TestProgram.Ejemplo3();
-		executeSamplingMethods(ejemplo3);
-
-		System.out.println("\n====== EJEMPLO 4: normal-prior ====== \n");
-		System.out.println("Exact mean: 2.231");
-		List<Expression> ejemplo4 = TestProgram.Ejemplo4();
-		executeSamplingMethods(ejemplo4);
-
-		System.out.println("\n====== EJEMPLO 5: coin-flips ====== \n");
-		System.out.println("Exact mean: 0.506");
-		List<Expression> ejemplo5 = TestProgram.Ejemplo5();
-		executeSamplingMethods(ejemplo5);
-
-		System.out.println("\n====== EJEMPLO 6: signal-noise ====== \n");
-		System.out.println("Exact mean: 0.599");
-		List<Expression> ejemplo6 = TestProgram.Ejemplo6();
-		executeSamplingMethods(ejemplo6);
-
-		System.out.println(
-				"\n(Tip: Run './gradlew benchmark' to execute the performance benchmarks)");
+	private static void runExample(String name, String exactResults, List<Expression> program) {
+		System.out.println("\n====== " + name + " ====== \n");
+		System.out.println(exactResults);
+		executeSamplingMethods(program);
 	}
 
 	private static void executeSamplingMethods(List<Expression> program) {
 		Random random = new Random(5);
 
+		// Likelihood Weighting (LW)
 		LikelihoodWeighting lw = new LikelihoodWeighting(program, random, 1000000);
-
-		ArrayList<Double> lwSamples = lw.run();
-		ArrayList<Double> lwWeights = lw.getWeights();
-		double lwMean = calculateWeightedMean(lwSamples, lwWeights);
+		List<Double> lwSamples = lw.run();
+		List<Double> lwWeights = lw.getWeights();
+		double lwMean = LikelihoodWeighting.calculateWeightedMean(lwSamples, lwWeights);
 		double lwStdDev = calculateWeightedStddev(lwMean, lwSamples, lwWeights);
 
 		System.out.println("LW mean: " + lwMean + " (stddev: " + lwStdDev + ")");
 
+		// Single-Site Metropolis-Hastings (SSMH)
 		InferenceEngine ssmh = new SSMetropolisHastings(program, random, 3000, 1000000);
-		ArrayList<Double> ssmhSamples = ssmh.run();
+		List<Double> ssmhSamples = ssmh.run();
 		double ssmhMean = calculateAverage(ssmhSamples);
 		double ssmhStdDev = calculateStddev(ssmhMean, ssmhSamples);
 
 		System.out.println("SSMH mean: " + ssmhMean + " (stddev: " + ssmhStdDev + ")");
 
+		// Sequential Monte Carlo (SMC)
 		InferenceEngine smc = new SequentialMonteCarlo(program, random, 20000);
-		ArrayList<Double> smcSamples = smc.run();
+		List<Double> smcSamples = smc.run();
 		double smcMean = calculateAverage(smcSamples);
 		double smcStdDev = calculateStddev(smcMean, smcSamples);
 
 		System.out.println("SMC mean: " + smcMean + " (stddev: " + smcStdDev + ")");
 	}
 
-	private static double calculateWeightedMean(ArrayList<Double> samples,
-			ArrayList<Double> weights) {
+	private static double calculateWeightedStddev(double mean,
+			List<Double> samples,
+			List<Double> weights) {
 		double sum = 0.0;
 		for (int i = 0; i < samples.size(); i++) {
-			sum += samples.get(i) * weights.get(i);
-		}
-		return sum;
-	}
-
-	private static double calculateWeightedStddev(double aMean,
-			ArrayList<Double> samples,
-			ArrayList<Double> weights) {
-		double sum = 0.0;
-		for (int i = 0; i < samples.size(); i++) {
-			sum += weights.get(i) * Math.pow(samples.get(i) - aMean, 2);
+			sum += weights.get(i) * Math.pow(samples.get(i) - mean, 2);
 		}
 		return Math.sqrt(sum);
 	}
 
-	private static double calculateAverage(ArrayList<Double> ssmhResults) {
-		return ssmhResults.stream().mapToDouble(Double::doubleValue).average().orElse(0.0);
+	private static double calculateAverage(List<Double> samples) {
+		return samples.stream().mapToDouble(Double::doubleValue).average().orElse(0.0);
 	}
 
-	private static double calculateStddev(double aMean, ArrayList<Double> samples) {
-		return Math.sqrt(samples.stream().mapToDouble(x -> Math.pow(x - aMean, 2)).sum() /
-						 ( samples.size() - 1 ));
+	private static double calculateStddev(double mean, List<Double> samples) {
+		if (samples.size() <= 1) {
+			return 0.0;
+		}
+		double variance = samples.stream().mapToDouble(x -> Math.pow(x - mean, 2)).sum() /
+						  ( samples.size() - 1 );
+		return Math.sqrt(variance);
 	}
 }

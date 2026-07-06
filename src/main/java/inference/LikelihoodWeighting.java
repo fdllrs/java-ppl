@@ -20,6 +20,14 @@ public class LikelihoodWeighting extends InferenceEngine {
 		this.iterations = iterations;
 	}
 
+	public static double calculateWeightedMean(List<Double> samples, List<Double> weights) {
+		double sum = 0.0;
+		for (int i = 0; i < samples.size(); i++) {
+			sum += samples.get(i) * weights.get(i);
+		}
+		return sum;
+	}
+
 	@Override
 	public ArrayList<Double> run() {
 		ArrayList<Double> values = new ArrayList<>();
