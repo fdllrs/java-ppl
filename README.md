@@ -81,7 +81,7 @@ We implement three standard probabilistic inference algorithms:
 * Gradle (wrapper included)
 
 ### Running the Project
-To run the main entry point, which executes all 6 example programs using the three inference algorithms:
+To run the main entry point, which executes all 11 example programs using the three inference algorithms:
 ```bash
 ./gradlew run
 ```
@@ -98,11 +98,17 @@ To run the project's unit test suite:
 ./gradlew test
 ```
 
+### Running Analytical Metrics
+To generate the exact theoretical mean and standard deviation for all 11 test examples:
+```bash
+python calculate_exact.py
+```
+
 ---
 
 ## 📝 Test Programs (Ejemplos)
 
-The suite contains six sample probabilistic programs designed to test convergence to exact analytical values:
+The suite contains eleven sample probabilistic programs designed to test convergence to exact analytical values:
 
 1. **`Ejemplo 1 (conj)`**:
    * A simple normal-normal conjugate model.
@@ -123,3 +129,18 @@ The suite contains six sample probabilistic programs designed to test convergenc
 6. **`Ejemplo 6 (signal-noise)`**:
    * A signal-noise model where the latent variable is the sum of two independent normals.
    * Exact Mean: **0.599**, Exact StdDev: **0.895**.
+7. **`Ejemplo 7 (binomial-test)`**:
+   * Replicates Ejemplo 2 but using a single `binomial` distribution.
+   * Exact Mean: **5.014**, Exact StdDev: **1.146**.
+8. **`Ejemplo 8 (exponential)`**:
+   * Exponential-Exponential conjugate model.
+   * Exact Mean: **0.667**, Exact StdDev: **0.471**.
+9. **`Ejemplo 9 (uniform)`**:
+   * Uniform-Normal model.
+   * Exact Mean: **4.500**, Exact StdDev: **1.000**.
+10. **`Ejemplo 10 (beta)`**:
+   * Beta-Bernoulli conjugate model.
+   * Exact Mean: **0.600**, Exact StdDev: **0.200**.
+11. **`Ejemplo 11 (gamma)`**:
+   * Gamma-Exponential conjugate model.
+   * Exact Mean: **1.200**, Exact StdDev: **0.693**.
