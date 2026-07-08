@@ -3,7 +3,12 @@ package core.callable;
 import core.Address;
 import core.Machine;
 import distributions.Bernoulli;
+import distributions.Beta;
+import distributions.Binomial;
+import distributions.Exponential;
+import distributions.Gamma;
 import distributions.Normal;
+import distributions.UniformContinuous;
 
 import java.util.List;
 import java.util.Objects;
@@ -108,6 +113,50 @@ public enum PrimitiveFunction implements Callable {
 					"bernoulli distribution expects 1 argument (p)");
 			double p = ( (Number) args.getFirst() ).doubleValue();
 			machine.pushResult(new Bernoulli(p));
+		}
+	}, BINOMIAL("binomial") {
+		@Override
+		public void apply(Machine machine, List<Object> args, Address address) {
+			if (args.size() != 2) throw new IllegalArgumentException(
+					"binomial distribution expects 2 arguments (n, p)");
+			int n = ( (Number) args.get(0) ).intValue();
+			double p = ( (Number) args.get(1) ).doubleValue();
+			machine.pushResult(new Binomial(n, p));
+		}
+	}, BETA("beta") {
+		@Override
+		public void apply(Machine machine, List<Object> args, Address address) {
+			if (args.size() != 2) throw new IllegalArgumentException(
+					"beta distribution expects 2 arguments (alpha, beta)");
+			double alpha = ( (Number) args.get(0) ).doubleValue();
+			double beta = ( (Number) args.get(1) ).doubleValue();
+			machine.pushResult(new Beta(alpha, beta));
+		}
+	}, GAMMA("gamma") {
+		@Override
+		public void apply(Machine machine, List<Object> args, Address address) {
+			if (args.size() != 2) throw new IllegalArgumentException(
+					"gamma distribution expects 2 arguments (shape, scale)");
+			double shape = ( (Number) args.get(0) ).doubleValue();
+			double scale = ( (Number) args.get(1) ).doubleValue();
+			machine.pushResult(new Gamma(shape, scale));
+		}
+	}, EXPONENTIAL("exponential") {
+		@Override
+		public void apply(Machine machine, List<Object> args, Address address) {
+			if (args.size() != 1) throw new IllegalArgumentException(
+					"exponential distribution expects 1 argument (rate)");
+			double rate = ( (Number) args.getFirst() ).doubleValue();
+			machine.pushResult(new Exponential(rate));
+		}
+	}, UNIFORM("uniform") {
+		@Override
+		public void apply(Machine machine, List<Object> args, Address address) {
+			if (args.size() != 2) throw new IllegalArgumentException(
+					"uniform distribution expects 2 arguments (min, max)");
+			double min = ( (Number) args.get(0) ).doubleValue();
+			double max = ( (Number) args.get(1) ).doubleValue();
+			machine.pushResult(new UniformContinuous(min, max));
 		}
 	};
 

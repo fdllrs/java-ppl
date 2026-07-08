@@ -4,9 +4,7 @@ import java.util.Random;
 
 public record Bernoulli(double p) implements Distribution {
 	public Bernoulli {
-		if (p < 0 || p > 1) {
-			throw new IllegalArgumentException("bernoulli: p must be in [0,1], got: " + p);
-		}
+		Distribution.assertProbability("bernoulli", p);
 	}
 
 	@Override
@@ -16,6 +14,16 @@ public record Bernoulli(double p) implements Distribution {
 
 	@Override
 	public double logProb(Object x) {
+		boolean val = convertToBoolean(x);
+		if (val) {
+			return p > 0 ? Math.log(p) : Double.NEGATIVE_INFINITY;
+		}
+		else {
+			return p < 1 ? Math.log(1.0 - p) : Double.NEGATIVE_INFINITY;
+		}
+	}
+
+	private static boolean convertToBoolean(Object x) {
 		boolean val;
 		if (x instanceof Boolean) {
 			val = (Boolean) x;
@@ -27,12 +35,7 @@ public record Bernoulli(double p) implements Distribution {
 			throw new IllegalArgumentException(
 					"bernoulli logProb expects boolean or number, got: " + x);
 		}
-		if (val) {
-			return p > 0 ? Math.log(p) : Double.NEGATIVE_INFINITY;
-		}
-		else {
-			return p < 1 ? Math.log(1.0 - p) : Double.NEGATIVE_INFINITY;
-		}
+		return val;
 	}
 
 	@Override

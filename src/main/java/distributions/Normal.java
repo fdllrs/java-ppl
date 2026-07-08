@@ -5,12 +5,8 @@ import java.util.Random;
 public record Normal(double mu, double sigma) implements Distribution {
 	private static final double LOG2PI = Math.log(2.0 * Math.PI);
 
-	public Normal(double mu, double sigma) {
-		this.mu = mu;
-		this.sigma = sigma;
-		if (sigma <= 0) {
-			throw new IllegalArgumentException("normal: sigma must be > 0, got: " + sigma);
-		}
+	public Normal {
+		Distribution.assertPositive("normal", sigma);
 	}
 
 	@Override
@@ -20,13 +16,10 @@ public record Normal(double mu, double sigma) implements Distribution {
 
 	@Override
 	public double logProb(Object x) {
-		double val;
-		if (x instanceof Number) {
-			val = ( (Number) x ).doubleValue();
-		}
-		else {
-			throw new IllegalArgumentException("normal logProb expects a number, got: " + x);
-		}
+		Distribution.assertIsNumber(x);
+
+		double val = ( (Number) x ).doubleValue();
+
 		double z = ( val - mu ) / sigma;
 		return -0.5 * ( LOG2PI + z * z ) - Math.log(sigma);
 	}

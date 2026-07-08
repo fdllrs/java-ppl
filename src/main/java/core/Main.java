@@ -18,6 +18,11 @@ public class Main {
 		runExample("EJEMPLO 4: normal-prior", "Exact mean: 2.231, exact stddev: 1.664", TestProgram.Ejemplo4());
 		runExample("EJEMPLO 5: coin-flips", "Exact mean: 0.506, exact stddev: 0.500", TestProgram.Ejemplo5());
 		runExample("EJEMPLO 6: signal-noise", "Exact mean: 0.599, exact stddev: 0.895", TestProgram.Ejemplo6());
+		runExample("EJEMPLO 7: binomial-test", "Exact mean: 5.014, exact stddev: 1.146", TestProgram.Ejemplo7());
+		runExample("EJEMPLO 8: exponential", "Exact mean: 0.667, exact stddev: 0.471", TestProgram.Ejemplo8());
+		runExample("EJEMPLO 9: uniform", "Exact mean: 4.500, exact stddev: 1.000", TestProgram.Ejemplo9());
+		runExample("EJEMPLO 10: beta", "Exact mean: 0.600, exact stddev: 0.200", TestProgram.Ejemplo10());
+		runExample("EJEMPLO 11: gamma", "Exact mean: 1.200, exact stddev: 0.693", TestProgram.Ejemplo11());
 
 		System.out.println("\n(Tip: Run './gradlew benchmark' to execute the performance benchmarks)");
 	}
