@@ -1,5 +1,7 @@
 package distributions;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.util.Random;
 
 public record Exponential(double rate) implements Distribution {
@@ -17,7 +19,7 @@ public record Exponential(double rate) implements Distribution {
 	@Override
 	public double logProb(Object x) {
 		Distribution.assertIsNumber(x);
-		double val = ((Number) x).doubleValue();
+		double val = ( (Number) x ).doubleValue();
 		if (val < 0.0) {
 			return Double.NEGATIVE_INFINITY;
 		}
@@ -25,6 +27,7 @@ public record Exponential(double rate) implements Distribution {
 	}
 
 	@Override
+	@NotNull
 	public String toString() {
 		return String.format("(exponential %f)", rate);
 	}

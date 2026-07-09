@@ -1,5 +1,7 @@
 package distributions;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.util.Random;
 
 public record UniformContinuous(double min, double max) implements Distribution {
@@ -10,19 +12,20 @@ public record UniformContinuous(double min, double max) implements Distribution 
 
 	@Override
 	public Object sample(Random rng) {
-		return rng.nextDouble() * (max - min) + min;
+		return rng.nextDouble() * ( max - min ) + min;
 	}
 
 	@Override
 	public double logProb(Object x) {
 		Distribution.assertIsNumber(x);
-		double val = ((Number) x).doubleValue();
+		double val = ( (Number) x ).doubleValue();
 		if (val < min || val > max) {
 			return Double.NEGATIVE_INFINITY;
 		}
 		return -Math.log(max - min);
 	}
 
+	@NotNull
 	@Override
 	public String toString() {
 		return String.format("(uniform %f %f)", min, max);

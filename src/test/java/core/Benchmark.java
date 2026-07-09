@@ -15,7 +15,7 @@ public class Benchmark {
 	private static final int WARMUP_RUNS = 2;
 	private static final int MEASUREMENT_RUNS = 5;
 
-	public static void main(String[] args) {
+	static void main() {
 		runBenchmarks();
 	}
 
@@ -27,12 +27,17 @@ public class Benchmark {
 		System.out.println("Measurement runs per method: " + MEASUREMENT_RUNS);
 		System.out.println();
 
-		benchmarkProblem("Ejemplo 1 (conj) - Exact Mean: 1.150", TestProgram.Ejemplo1());
-		benchmarkProblem("Ejemplo 2 (bits) - Exact Mean: 5.014", TestProgram.Ejemplo2());
-		benchmarkProblem("Ejemplo 3 (multi-normal) - Exact Mean: 1.333", TestProgram.Ejemplo3());
-		benchmarkProblem("Ejemplo 4 (normal-prior) - Exact Mean: 2.231", TestProgram.Ejemplo4());
-		benchmarkProblem("Ejemplo 5 (coin-flips) - Exact Mean: 0.506", TestProgram.Ejemplo5());
-		benchmarkProblem("Ejemplo 6 (signal-noise) - Exact Mean: 0.599", TestProgram.Ejemplo6());
+		benchmarkProblem("Ejemplo 1 (conj) - Exact Mean: 1.150",
+						 TestProgram.normalNormalConjugate());
+		benchmarkProblem("Ejemplo 2 (bits) - Exact Mean: 5.014", TestProgram.noisyBernoulliSum());
+		benchmarkProblem("Ejemplo 3 (multi-normal) - Exact Mean: 1.333",
+						 TestProgram.multiObsNormalNormal());
+		benchmarkProblem("Ejemplo 4 (normal-prior) - Exact Mean: 2.231",
+						 TestProgram.highVarianceNormalPrior());
+		benchmarkProblem("Ejemplo 5 (coin-flips) - Exact Mean: 0.506",
+						 TestProgram.coinFlipSelection());
+		benchmarkProblem("Ejemplo 6 (signal-noise) - Exact Mean: 0.599",
+						 TestProgram.signalNoiseSum());
 	}
 
 	private static void benchmarkProblem(String name, List<Expression> program) {

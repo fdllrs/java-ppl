@@ -14,12 +14,11 @@ import messaging.Sample;
 import java.util.*;
 
 public class Machine {
-	Deque<Instruction> controlStack;
-	Deque<Object> valueStack;
-	double logWeight;
-	Random rng;
-	Environment environment;
-
+	private final Environment environment;
+	private final Random rng;
+	private final Deque<Object> valueStack;
+	private final Deque<Instruction> controlStack;
+	private double logWeight;
 	private Message pendingMessage;
 
 	public Machine(Deque<Instruction> controlStack,
@@ -79,6 +78,18 @@ public class Machine {
 		Address address = evaluate.getAddress();
 
 		expression.evaluate(env, address, this);
+	}
+
+	public boolean environmentContains(String variableName) {
+		return environment.contains(variableName);
+	}
+
+	public void addToEnvironment(String variableName, Object value) {
+		environment.add(variableName, value);
+	}
+
+	public Object lookupInEnvironment(String variableName) {
+		return environment.lookup(variableName);
 	}
 
 	public void executeLetK(LetK letK) {

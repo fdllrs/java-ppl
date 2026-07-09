@@ -2,13 +2,7 @@ package core.callable;
 
 import core.Address;
 import core.Machine;
-import distributions.Bernoulli;
-import distributions.Beta;
-import distributions.Binomial;
-import distributions.Exponential;
-import distributions.Gamma;
-import distributions.Normal;
-import distributions.UniformContinuous;
+import distributions.*;
 
 import java.util.List;
 import java.util.Objects;

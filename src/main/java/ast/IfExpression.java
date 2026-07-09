@@ -4,6 +4,8 @@ import core.Address;
 import core.Environment;
 import core.Machine;
 
+import java.util.Objects;
+
 public class IfExpression implements Expression {
 	Expression testExpression;
 	Expression thenExpression;
@@ -21,6 +23,20 @@ public class IfExpression implements Expression {
 	public void evaluate(Environment environment, Address address, Machine machine) {
 
 		machine.evaluateIf(testExpression, thenExpression, elseExpression, environment, address);
+	}
+
+	@Override
+	public int hashCode() {
+		return Objects.hash(testExpression, thenExpression, elseExpression);
+	}
+
+	@Override
+	public boolean equals(Object o) {
+		if (this == o) return true;
+		if (!( o instanceof IfExpression that )) return false;
+		return Objects.equals(testExpression, that.testExpression) && Objects.equals(thenExpression,
+																					 that.thenExpression) &&
+			   Objects.equals(elseExpression, that.elseExpression);
 	}
 
 	@Override

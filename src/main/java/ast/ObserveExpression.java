@@ -4,6 +4,8 @@ import core.Address;
 import core.Environment;
 import core.Machine;
 
+import java.util.Objects;
+
 public class ObserveExpression implements Expression {
 
 	Expression expression1;
@@ -17,6 +19,19 @@ public class ObserveExpression implements Expression {
 	@Override
 	public void evaluate(Environment environment, Address address, Machine machine) {
 		machine.evaluateObserve(expression1, expression2, environment, address);
+	}
+
+	@Override
+	public int hashCode() {
+		return Objects.hash(expression1, expression2);
+	}
+
+	@Override
+	public boolean equals(Object o) {
+		if (this == o) return true;
+		if (!( o instanceof ObserveExpression that )) return false;
+		return Objects.equals(expression1, that.expression1) && Objects.equals(expression2,
+																			   that.expression2);
 	}
 
 	@Override

@@ -5,6 +5,7 @@ import core.Environment;
 import core.Machine;
 
 import java.util.List;
+import java.util.Objects;
 
 public class FnExpression implements Expression {
 
@@ -19,6 +20,18 @@ public class FnExpression implements Expression {
 	@Override
 	public void evaluate(Environment environment, Address address, Machine machine) {
 		machine.evaluateFn(params, body, environment);
+	}
+
+	@Override
+	public int hashCode() {
+		return Objects.hash(params, body);
+	}
+
+	@Override
+	public boolean equals(Object o) {
+		if (this == o) return true;
+		if (!( o instanceof FnExpression that )) return false;
+		return Objects.equals(params, that.params) && Objects.equals(body, that.body);
 	}
 
 	@Override
