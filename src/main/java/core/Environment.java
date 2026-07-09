@@ -13,8 +13,8 @@ public class Environment {
 	public Environment(Environment environment) {
 		for (String name : environment.variables.keySet()) {
 			variables.put(name, environment.variables.get(name));
-			// habría que hacer deep copy si incluyéramos tipos de datos mutables, acá no hace
-			// falta
+			// habría que hacer deep copy si incluyéramos tipos de datos mutables, por ahora no
+			// hace falta
 		}
 	}
 
