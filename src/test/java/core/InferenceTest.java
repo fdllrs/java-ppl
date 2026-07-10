@@ -18,7 +18,7 @@ public class InferenceTest {
 		List<Expression> program = TestProgram.normalNormalConjugate();
 		Random random = new Random(42);
 
-		LikelihoodWeighting lw = new LikelihoodWeighting(program, random, 50000);
+		LikelihoodWeighting<Double> lw = new LikelihoodWeighting<>(program, random, 50000);
 		List<Double> samples = lw.run();
 		List<Double> weights = lw.getWeights();
 
@@ -33,7 +33,10 @@ public class InferenceTest {
 		List<Expression> program = TestProgram.normalNormalConjugate();
 		Random random = new Random(42);
 
-		SSMetropolisHastings ssmh = new SSMetropolisHastings(program, random, 1000, 10000);
+		SSMetropolisHastings<Double> ssmh = new SSMetropolisHastings<>(program,
+																	   random,
+																	   1000,
+																	   10000);
 		List<Double> samples = ssmh.run();
 
 		double mean = samples.stream().mapToDouble(Double::doubleValue).average().orElse(0.0);
@@ -47,7 +50,7 @@ public class InferenceTest {
 		List<Expression> program = TestProgram.normalNormalConjugate();
 		Random random = new Random(42);
 
-		SequentialMonteCarlo smc = new SequentialMonteCarlo(program, random, 5000);
+		SequentialMonteCarlo<Double> smc = new SequentialMonteCarlo<>(program, random, 5000);
 		List<Double> samples = smc.run();
 
 		double mean = samples.stream().mapToDouble(Double::doubleValue).average().orElse(0.0);

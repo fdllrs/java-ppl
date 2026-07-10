@@ -47,17 +47,17 @@ public class Benchmark {
 
 		BenchmarkConfig lwConfig = new BenchmarkConfig("Likelihood Weighting", () -> {
 			Random random = new Random(5);
-			return new LikelihoodWeighting(program, random, 1000000);
+			return new LikelihoodWeighting<>(program, random, 1000000);
 		}, 1000000, "iterations");
 
 		BenchmarkConfig ssmhConfig = new BenchmarkConfig("SS Metropolis-Hastings", () -> {
 			Random random = new Random(5);
-			return new SSMetropolisHastings(program, random, 3000, 1000000);
+			return new SSMetropolisHastings<>(program, random, 3000, 1000000);
 		}, 1000000, "iterations");
 
 		BenchmarkConfig smcConfig = new BenchmarkConfig("Sequential Monte Carlo", () -> {
 			Random random = new Random(5);
-			return new SequentialMonteCarlo(program, random, 20000);
+			return new SequentialMonteCarlo<>(program, random, 20000);
 		}, 20000, "particles");
 
 		runConfig(lwConfig);
@@ -69,7 +69,7 @@ public class Benchmark {
 	private static void runConfig(BenchmarkConfig config) {
 		System.out.print("Warming up " + config.name + "...");
 		for (int i = 0; i < WARMUP_RUNS; i++) {
-			InferenceEngine engine = config.factory.create();
+			InferenceEngine<?> engine = config.factory.create();
 			engine.run();
 			System.out.print(".");
 		}
@@ -85,25 +85,27 @@ public class Benchmark {
 				Thread.sleep(100); // Let GC settle
 			} catch (InterruptedException ignored) { }
 
-			InferenceEngine engine = config.factory.create();
+			InferenceEngine<?> engine = config.factory.create();
 			long start = System.nanoTime();
-			ArrayList<Double> results = engine.run();
+			ArrayList<?> results = engine.run();
 			long end = System.nanoTime();
 			double durationMs = ( end - start ) / 1e6;
 			timesMs.add(durationMs);
 
 			double meanEstimate;
-			if (engine instanceof LikelihoodWeighting lw) {
+			if (engine instanceof LikelihoodWeighting<?> lw) {
 				ArrayList<Double> weights = lw.getWeights();
 				double weightedSum = 0.0;
 				for (int j = 0; j < results.size(); j++) {
-					weightedSum += results.get(j) * weights.get(j);
+					weightedSum += ( (Number) results.get(j) ).doubleValue() * weights.get(j);
 				}
 				meanEstimate = weightedSum;
 			}
 			else {
-				meanEstimate = results.stream().mapToDouble(Double::doubleValue).average().orElse(
-						0.0);
+				meanEstimate = results.stream()
+									  .mapToDouble(x -> ( (Number) x ).doubleValue())
+									  .average()
+									  .orElse(0.0);
 			}
 			meanEstimates.add(meanEstimate);
 			System.out.print(".");
@@ -131,8 +133,7 @@ public class Benchmark {
 										  .average()
 										  .orElse(0.0);
 
-		// config.unitCount / (meanTime / 1000.0) -> units per second
-		double throughput = config.unitCount / ( meanTime / 1000.0 );
+		double unitsPerSecond = config.unitCount / ( meanTime / 1000.0 );
 
 		System.out.printf("  Results for %s (%d %s):\n",
 						  config.name,
@@ -140,13 +141,15 @@ public class Benchmark {
 						  config.unitName);
 		System.out.printf("    Avg Execution Time : %.2f ms (+- %.2f ms)\n", meanTime, stdDev);
 		System.out.printf("    Min / Max Time     : %.2f ms / %.2f ms\n", min, max);
-		System.out.printf("    Throughput         : %,.2f %s/sec\n", throughput, config.unitName);
+		System.out.printf("    Throughput         : %,.2f %s/sec\n",
+						  unitsPerSecond,
+						  config.unitName);
 		System.out.printf("    Avg Mean Estimate  : %.4f\n", avgEstimate);
 		System.out.println();
 	}
 
 	interface EngineFactory {
-		InferenceEngine create();
+		InferenceEngine<?> create();
 	}
 
 	private static class BenchmarkConfig {

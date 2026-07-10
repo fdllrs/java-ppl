@@ -11,7 +11,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
-public class SequentialMonteCarlo extends InferenceEngine {
+public class SequentialMonteCarlo <T> extends InferenceEngine<T> {
 
 	private final int particleCount;
 
@@ -22,7 +22,7 @@ public class SequentialMonteCarlo extends InferenceEngine {
 	}
 
 	@Override
-	public ArrayList<Double> run() {
+	public ArrayList<T> run() {
 
 		ArrayList<Machine> particles = initializeParticles();
 
@@ -107,11 +107,12 @@ public class SequentialMonteCarlo extends InferenceEngine {
 		return messages.stream().allMatch((message) -> message instanceof Done);
 	}
 
-	private static ArrayList<Double> getMessageResults(ArrayList<Message> messages) {
-		ArrayList<Double> results = new ArrayList<>();
+	@SuppressWarnings("unchecked")
+	private ArrayList<T> getMessageResults(ArrayList<Message> messages) {
+		ArrayList<T> results = new ArrayList<>();
 		for (Message message : messages) {
 			Done done = (Done) message;
-			results.add(( (Number) done.returnValue() ).doubleValue());
+			results.add((T) done.returnValue());
 		}
 		return results;
 	}

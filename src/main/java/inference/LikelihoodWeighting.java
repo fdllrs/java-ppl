@@ -9,7 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
-public class LikelihoodWeighting extends InferenceEngine {
+public class LikelihoodWeighting <T> extends InferenceEngine<T> {
 
 	private final int iterations;
 	private ArrayList<Double> weights;
@@ -20,17 +20,18 @@ public class LikelihoodWeighting extends InferenceEngine {
 		this.iterations = iterations;
 	}
 
-	public static double calculateWeightedMean(List<Double> samples, List<Double> weights) {
+	public static double calculateWeightedMean(List<? extends Number> samples,
+			List<Double> weights) {
 		double sum = 0.0;
 		for (int i = 0; i < samples.size(); i++) {
-			sum += samples.get(i) * weights.get(i);
+			sum += samples.get(i).doubleValue() * weights.get(i);
 		}
 		return sum;
 	}
 
 	@Override
-	public ArrayList<Double> run() {
-		ArrayList<Double> values = new ArrayList<>();
+	public ArrayList<T> run() {
+		ArrayList<T> values = new ArrayList<>();
 		ArrayList<Double> logWeights = new ArrayList<>();
 
 		for (int i = 0; i < iterations; i++) {
@@ -41,9 +42,10 @@ public class LikelihoodWeighting extends InferenceEngine {
 		return values;
 	}
 
-	private void runIteration(List<Double> values, List<Double> logWeights) {
+	@SuppressWarnings("unchecked")
+	private void runIteration(List<T> values, List<Double> logWeights) {
 		MachineResult result = executeLikelihoodWeighting();
-		values.add(( (Number) result.returnValue() ).doubleValue());
+		values.add((T) result.returnValue());
 		logWeights.add(result.logWeight());
 	}
 

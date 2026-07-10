@@ -8,7 +8,7 @@ import messaging.*;
 
 import java.util.*;
 
-public class SSMetropolisHastings extends InferenceEngine {
+public class SSMetropolisHastings <T> extends InferenceEngine<T> {
 
 	private final int warmup;
 	private final int iterations;
@@ -132,19 +132,20 @@ public class SSMetropolisHastings extends InferenceEngine {
 		return sum;
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
-	public ArrayList<Double> run() {
+	public ArrayList<T> run() {
 
 		Trace currentTrace;
 		currentTrace = runTrace(rng, null, new HashMap<>());
 
-		ArrayList<Double> results = new ArrayList<>();
+		ArrayList<T> results = new ArrayList<>();
 
 		for (int stepNumber = 0; stepNumber < iterations + this.warmup; stepNumber++) {
 			currentTrace = performInferenceStep(currentTrace);
 
 			if (stepNumber >= this.warmup) {
-				results.add(( (Number) currentTrace.returnValue() ).doubleValue());
+				results.add((T) currentTrace.returnValue());
 			}
 		}
 

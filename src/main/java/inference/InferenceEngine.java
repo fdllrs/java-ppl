@@ -11,7 +11,7 @@ import core.callable.Closure;
 
 import java.util.*;
 
-public abstract class InferenceEngine {
+public abstract class InferenceEngine <T> {
 	protected final Random rng;
 	protected final List<Expression> program;
 
@@ -74,7 +74,7 @@ public abstract class InferenceEngine {
 		return new EvaluateK(main, environment, new Address());
 	}
 
-	public abstract ArrayList<Double> run();
+	public abstract ArrayList<T> run();
 
 	public record MachineResult(double logWeight, Object returnValue) { }
 }
