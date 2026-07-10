@@ -1,0 +1,6 @@
+(let [biased (sample (bernoulli 0.5))
+      p (if biased 0.8 0.5)]
+  (observe (bernoulli p) 1)
+  (observe (bernoulli p) 1)
+  (observe (bernoulli p) 0)
+  (if biased 1 0))

@@ -1,0 +1,3 @@
+(let [total (sample (binomial 8 0.5))]
+  (observe (normal 7 2) total)
+  total)

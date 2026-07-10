@@ -1,0 +1,3 @@
+(let [mu (sample (normal 1 2))]
+  (observe (normal mu 3) 5.0)
+  mu)

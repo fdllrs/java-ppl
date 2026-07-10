@@ -1,0 +1,3 @@
+(let [lambda (sample (gamma 2.0 2.0))]
+  (observe (exponential lambda) 2.0)
+  lambda)

@@ -20,7 +20,7 @@ public class Main {
 		System.out.println("Running a quick example (conjugate normal-normal):");
 
 		List<Expression> program = TestProgram.normalNormalConjugate();
-		LikelihoodWeighting lw = new LikelihoodWeighting(program, new Random(42), 10000);
+		LikelihoodWeighting<Double> lw = new LikelihoodWeighting<>(program, new Random(42), 10000);
 		List<Double> samples = lw.run();
 		double mean = LikelihoodWeighting.calculateWeightedMean(samples, lw.getWeights());
 

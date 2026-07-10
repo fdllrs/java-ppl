@@ -32,32 +32,32 @@ public class ExampleProgramsTest {
 		Random random = new Random(42);
 
 		// 1. Likelihood Weighting
-		LikelihoodWeighting lw = new LikelihoodWeighting(program,
-														 new Random(random.nextLong()),
-														 LW_ITERATIONS);
-		List<Double> lwSamples = lw.run();
+		LikelihoodWeighting<Number> lw = new LikelihoodWeighting<>(program,
+																   new Random(random.nextLong()),
+																   LW_ITERATIONS);
+		List<Number> lwSamples = lw.run();
 		double lwMean = LikelihoodWeighting.calculateWeightedMean(lwSamples, lw.getWeights());
 		assertEquals(exactMean, lwMean, tolerance, "LW failed to converge");
 
 		// 2. Single-Site Metropolis-Hastings
-		SSMetropolisHastings ssmh = new SSMetropolisHastings(program,
-															 new Random(random.nextLong()),
-															 SSMH_WARMUP,
-															 SSMH_ITERATIONS);
-		List<Double> ssmhSamples = ssmh.run();
+		SSMetropolisHastings<Number> ssmh = new SSMetropolisHastings<>(program,
+																	   new Random(random.nextLong()),
+																	   SSMH_WARMUP,
+																	   SSMH_ITERATIONS);
+		List<Number> ssmhSamples = ssmh.run();
 		double ssmhMean = ssmhSamples.stream()
-									 .mapToDouble(Double::doubleValue)
+									 .mapToDouble(Number::doubleValue)
 									 .average()
 									 .orElse(0.0);
 		assertEquals(exactMean, ssmhMean, tolerance, "SSMH failed to converge");
 
 		// 3. Sequential Monte Carlo
-		SequentialMonteCarlo smc = new SequentialMonteCarlo(program,
-															new Random(random.nextLong()),
-															SMC_PARTICLES);
-		List<Double> smcSamples = smc.run();
+		SequentialMonteCarlo<Number> smc = new SequentialMonteCarlo<>(program,
+																	  new Random(random.nextLong()),
+																	  SMC_PARTICLES);
+		List<Number> smcSamples = smc.run();
 		double smcMean =
-				smcSamples.stream().mapToDouble(Double::doubleValue).average().orElse(0.0);
+				smcSamples.stream().mapToDouble(Number::doubleValue).average().orElse(0.0);
 		assertEquals(exactMean, smcMean, tolerance, "SMC failed to converge");
 	}
 

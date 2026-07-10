@@ -2,6 +2,7 @@ package core;
 
 import Instructions.LetK.Binding;
 import ast.*;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -219,7 +220,12 @@ public class Parser {
 		return parsedExpressions;
 	}
 
+	public static List<Expression> parse(java.io.File file) throws java.io.IOException {
+		return parse(java.nio.file.Files.readString(file.toPath()));
+	}
+
 	public record Token(Type type, String text) {
+		@NotNull
 		@Override
 		public String toString() {
 			return String.format("%s:%s", type, text);
@@ -239,6 +245,7 @@ public class Parser {
 			return name.equals(aName);
 		}
 
+		@NotNull
 		@Override
 		public String toString() {
 			return name;
