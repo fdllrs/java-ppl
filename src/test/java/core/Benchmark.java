@@ -129,7 +129,7 @@ public class Benchmark {
 										  .average()
 										  .orElse(0.0);
 
-		double unitsPerSecond = config.unitCount / ( meanTime / 1000.0 );
+		double unitsPerSecond = ( config.unitCount * 1000.0 ) / meanTime;
 
 		System.out.printf("  Results for %s (%d %s):\n",
 						  config.name,
