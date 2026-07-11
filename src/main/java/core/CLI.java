@@ -41,6 +41,7 @@ public class CLI implements Callable<Integer> {
 		System.out.printf("Std Dev : %.4f%n", stdDev);
 		System.out.printf("Min     : %.4f%n", min);
 		System.out.printf("Max     : %.4f%n", max);
+		System.out.printf("ESS     : %.2f%n", posterior.effectiveSampleSize());
 
 		if (max == min) {
 			System.out.println("All samples have the same value.");

@@ -49,4 +49,16 @@ public record Posterior <T>(List<T> samples, List<Double> weights) {
 		}
 		return sum;
 	}
+
+	public double effectiveSampleSize() {
+		if (weights.isEmpty()) return 0.0;
+		double sumWeights = 0.0;
+		double sumSquaredWeights = 0.0;
+		for (double w : weights) {
+			sumWeights += w;
+			sumSquaredWeights += w * w;
+		}
+		if (sumSquaredWeights == 0.0) return 0.0;
+		return ( sumWeights * sumWeights ) / sumSquaredWeights;
+	}
 }
