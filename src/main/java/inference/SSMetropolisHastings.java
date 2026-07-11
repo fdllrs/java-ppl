@@ -45,7 +45,11 @@ public class SSMetropolisHastings <T> extends InferenceEngine<T> {
 									distribution,
 									observation);
 			case Done(var returnValue) -> {
-				return new Trace(returnValue, samples, logPriors, logLikelihoods);
+				return new Trace(returnValue,
+								 samples,
+								 logPriors,
+								 logLikelihoods,
+								 new ArrayList<>(samples.keySet()));
 			}
 			case Fork() -> throw new RuntimeException("Should not fork in SSMH");
 		}
@@ -90,39 +94,27 @@ public class SSMetropolisHastings <T> extends InferenceEngine<T> {
 		Map<Address, Object> currentSamples = currentTrace.samples();
 		Map<Address, Object> proposedSamples = proposedTrace.samples();
 
-		Set<Address> forwardProposalSet = computeProposalSet(proposedSamples.keySet(),
-															 currentSamples.keySet(),
-															 proposalAddress);
-		Set<Address> reverseProposalSet = computeProposalSet(currentSamples.keySet(),
-															 proposedSamples.keySet(),
-															 proposalAddress);
-
 		double proposedLogProb = sumLogProbabilities(proposedTrace.logPriors(),
 													 proposedTrace.logLikelihoods(),
-													 forwardProposalSet);
+													 currentSamples,
+													 proposalAddress);
 		double currentLogProb = sumLogProbabilities(currentTrace.logPriors(),
 													currentTrace.logLikelihoods(),
-													reverseProposalSet);
+													proposedSamples,
+													proposalAddress);
 
 		return ( Math.log(currentSamples.size()) - Math.log(proposedSamples.size()) ) +
 			   ( proposedLogProb - currentLogProb );
 	}
 
-	private static Set<Address> computeProposalSet(Set<Address> sourceKeys,
-			Set<Address> targetKeys,
-			Address proposalAddress) {
-		Set<Address> proposalSet = new HashSet<>(sourceKeys);
-		proposalSet.removeAll(targetKeys);
-		proposalSet.add(proposalAddress);
-		return proposalSet;
-	}
-
 	private static double sumLogProbabilities(Map<Address, Object> logPriors,
 			Map<Address, Object> logLikelihoods,
-			Set<Address> excludedAddresses) {
+			Map<Address, Object> otherSamples,
+			Address proposalAddress) {
 		double sum = 0.0;
 		for (Map.Entry<Address, Object> entry : logPriors.entrySet()) {
-			if (!excludedAddresses.contains(entry.getKey())) {
+			Address key = entry.getKey();
+			if (!key.equals(proposalAddress) && otherSamples.containsKey(key)) {
 				sum += ( (Number) entry.getValue() ).doubleValue();
 			}
 		}
@@ -158,9 +150,10 @@ public class SSMetropolisHastings <T> extends InferenceEngine<T> {
 
 		Machine machine = initializeMachine();
 
-		Map<Address, Object> samples = new HashMap<>();
-		Map<Address, Object> logPriors = new HashMap<>();
-		Map<Address, Object> logLikelihoods = new HashMap<>();
+		int expectedSize = currentSamples.isEmpty() ? 16 : ( currentSamples.size() + 2 );
+		Map<Address, Object> samples = new HashMap<>(expectedSize);
+		Map<Address, Object> logPriors = new HashMap<>(expectedSize);
+		Map<Address, Object> logLikelihoods = new HashMap<>(expectedSize);
 
 		while (true) {
 			Message message = machine.resume();
@@ -179,15 +172,15 @@ public class SSMetropolisHastings <T> extends InferenceEngine<T> {
 
 	private Trace performInferenceStep(Trace currentTrace) {
 		Map<Address, Object> currentSamples = currentTrace.samples();
-		Address proposalAddress = getRandomAddress(currentSamples);
+		Address proposalAddress = getRandomAddress(currentTrace);
 		Trace proposedTrace = runTrace(rng, proposalAddress, currentSamples);
 		currentTrace = updateTrace(currentTrace, proposedTrace, proposalAddress);
 
 		return currentTrace;
 	}
 
-	private Address getRandomAddress(Map<Address, Object> samples) {
-		List<Address> addresses = new ArrayList<>(samples.keySet());
+	private Address getRandomAddress(Trace trace) {
+		List<Address> addresses = trace.sampleAddresses();
 		int randomIndex = rng.nextInt(addresses.size());
 		return addresses.get(randomIndex);
 	}
@@ -206,5 +199,6 @@ public class SSMetropolisHastings <T> extends InferenceEngine<T> {
 			Object returnValue,
 			Map<Address, Object> samples,
 			Map<Address, Object> logPriors,
-			Map<Address, Object> logLikelihoods) { }
+			Map<Address, Object> logLikelihoods,
+			List<Address> sampleAddresses) { }
 }
