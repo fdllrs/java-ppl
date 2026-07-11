@@ -22,7 +22,7 @@ public class SequentialMonteCarlo <T> extends InferenceEngine<T> {
 	}
 
 	@Override
-	public ArrayList<T> run() {
+	public Posterior<T> run() {
 
 		ArrayList<Machine> particles = initializeParticles();
 
@@ -32,7 +32,7 @@ public class SequentialMonteCarlo <T> extends InferenceEngine<T> {
 
 			if (allParticlesDone(messages)) {
 
-				return getMessageResults(messages);
+				return Posterior.ofUnweighted(getMessageResults(messages));
 			}
 			assertAllMessagesAreObserve(messages);
 

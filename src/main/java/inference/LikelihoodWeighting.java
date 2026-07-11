@@ -12,7 +12,6 @@ import java.util.Random;
 public class LikelihoodWeighting <T> extends InferenceEngine<T> {
 
 	private final int iterations;
-	private ArrayList<Double> weights;
 
 	public LikelihoodWeighting(List<Expression> program, Random rng, int iterations) {
 		super(program, rng);
@@ -20,17 +19,8 @@ public class LikelihoodWeighting <T> extends InferenceEngine<T> {
 		this.iterations = iterations;
 	}
 
-	public static double calculateWeightedMean(List<? extends Number> samples,
-			List<Double> weights) {
-		double sum = 0.0;
-		for (int i = 0; i < samples.size(); i++) {
-			sum += samples.get(i).doubleValue() * weights.get(i);
-		}
-		return sum;
-	}
-
 	@Override
-	public ArrayList<T> run() {
+	public Posterior<T> run() {
 		ArrayList<T> values = new ArrayList<>();
 		ArrayList<Double> logWeights = new ArrayList<>();
 
@@ -38,8 +28,8 @@ public class LikelihoodWeighting <T> extends InferenceEngine<T> {
 			runIteration(values, logWeights);
 		}
 
-		this.weights = softmax(logWeights);
-		return values;
+		ArrayList<Double> weights = softmax(logWeights);
+		return new Posterior<>(values, weights);
 	}
 
 	@SuppressWarnings("unchecked")
@@ -69,9 +59,5 @@ public class LikelihoodWeighting <T> extends InferenceEngine<T> {
 						throw new RuntimeException("Should not fork in likelihood weighting");
 			}
 		}
-	}
-
-	public ArrayList<Double> getWeights() {
-		return weights;
 	}
 }

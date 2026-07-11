@@ -2,6 +2,7 @@ package core;
 
 import ast.Expression;
 import inference.LikelihoodWeighting;
+import inference.Posterior;
 import inference.SSMetropolisHastings;
 import inference.SequentialMonteCarlo;
 import org.junit.jupiter.api.Test;
@@ -19,13 +20,10 @@ public class InferenceTest {
 		Random random = new Random(42);
 
 		LikelihoodWeighting<Double> lw = new LikelihoodWeighting<>(program, random, 50000);
-		List<Double> samples = lw.run();
-		List<Double> weights = lw.getWeights();
-
-		double weightedMean = LikelihoodWeighting.calculateWeightedMean(samples, weights);
+		Posterior<Double> posterior = lw.run();
 
 		// The exact mean is 1.15
-		assertEquals(1.15, weightedMean, 0.15);
+		assertEquals(1.15, posterior.mean(), 0.15);
 	}
 
 	@Test
@@ -37,12 +35,10 @@ public class InferenceTest {
 																	   random,
 																	   1000,
 																	   10000);
-		List<Double> samples = ssmh.run();
-
-		double mean = samples.stream().mapToDouble(Double::doubleValue).average().orElse(0.0);
+		Posterior<Double> posterior = ssmh.run();
 
 		// The exact mean is 1.15
-		assertEquals(1.15, mean, 0.15);
+		assertEquals(1.15, posterior.mean(), 0.15);
 	}
 
 	@Test
@@ -51,11 +47,9 @@ public class InferenceTest {
 		Random random = new Random(42);
 
 		SequentialMonteCarlo<Double> smc = new SequentialMonteCarlo<>(program, random, 5000);
-		List<Double> samples = smc.run();
-
-		double mean = samples.stream().mapToDouble(Double::doubleValue).average().orElse(0.0);
+		Posterior<Double> posterior = smc.run();
 
 		// The exact mean is 1.15
-		assertEquals(1.15, mean, 0.15);
+		assertEquals(1.15, posterior.mean(), 0.15);
 	}
 }

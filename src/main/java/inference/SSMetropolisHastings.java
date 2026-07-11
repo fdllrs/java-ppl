@@ -134,7 +134,7 @@ public class SSMetropolisHastings <T> extends InferenceEngine<T> {
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public ArrayList<T> run() {
+	public Posterior<T> run() {
 
 		Trace currentTrace;
 		currentTrace = runTrace(rng, null, new HashMap<>());
@@ -149,7 +149,7 @@ public class SSMetropolisHastings <T> extends InferenceEngine<T> {
 			}
 		}
 
-		return results;
+		return Posterior.ofUnweighted(results);
 	}
 
 	private Trace runTrace(Random rng,

@@ -21,8 +21,7 @@ public class Main {
 
 		List<Expression> program = TestProgram.normalNormalConjugate();
 		LikelihoodWeighting<Double> lw = new LikelihoodWeighting<>(program, new Random(42), 10000);
-		List<Double> samples = lw.run();
-		double mean = LikelihoodWeighting.calculateWeightedMean(samples, lw.getWeights());
+		double mean = lw.run().mean();
 
 		System.out.println("  Exact Mean  : 1.150");
 		System.out.println("  LW Estimate : " + String.format("%.4f", mean));

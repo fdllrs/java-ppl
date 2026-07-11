@@ -2,6 +2,7 @@ package core;
 
 import ast.Expression;
 import inference.LikelihoodWeighting;
+import inference.Posterior;
 import inference.SSMetropolisHastings;
 import inference.SequentialMonteCarlo;
 import org.junit.jupiter.api.Test;
@@ -35,30 +36,23 @@ public class ExampleProgramsTest {
 		LikelihoodWeighting<Number> lw = new LikelihoodWeighting<>(program,
 																   new Random(random.nextLong()),
 																   LW_ITERATIONS);
-		List<Number> lwSamples = lw.run();
-		double lwMean = LikelihoodWeighting.calculateWeightedMean(lwSamples, lw.getWeights());
-		assertEquals(exactMean, lwMean, tolerance, "LW failed to converge");
+		Posterior<Number> lwPosterior = lw.run();
+		assertEquals(exactMean, lwPosterior.mean(), tolerance, "LW failed to converge");
 
 		// 2. Single-Site Metropolis-Hastings
 		SSMetropolisHastings<Number> ssmh = new SSMetropolisHastings<>(program,
 																	   new Random(random.nextLong()),
 																	   SSMH_WARMUP,
 																	   SSMH_ITERATIONS);
-		List<Number> ssmhSamples = ssmh.run();
-		double ssmhMean = ssmhSamples.stream()
-									 .mapToDouble(Number::doubleValue)
-									 .average()
-									 .orElse(0.0);
-		assertEquals(exactMean, ssmhMean, tolerance, "SSMH failed to converge");
+		Posterior<Number> ssmhPosterior = ssmh.run();
+		assertEquals(exactMean, ssmhPosterior.mean(), tolerance, "SSMH failed to converge");
 
 		// 3. Sequential Monte Carlo
 		SequentialMonteCarlo<Number> smc = new SequentialMonteCarlo<>(program,
 																	  new Random(random.nextLong()),
 																	  SMC_PARTICLES);
-		List<Number> smcSamples = smc.run();
-		double smcMean =
-				smcSamples.stream().mapToDouble(Number::doubleValue).average().orElse(0.0);
-		assertEquals(exactMean, smcMean, tolerance, "SMC failed to converge");
+		Posterior<Number> smcPosterior = smc.run();
+		assertEquals(exactMean, smcPosterior.mean(), tolerance, "SMC failed to converge");
 	}
 
 	@Test

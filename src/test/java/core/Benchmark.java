@@ -1,10 +1,7 @@
 package core;
 
 import ast.Expression;
-import inference.InferenceEngine;
-import inference.LikelihoodWeighting;
-import inference.SSMetropolisHastings;
-import inference.SequentialMonteCarlo;
+import inference.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -80,38 +77,37 @@ public class Benchmark {
 		List<Double> meanEstimates = new ArrayList<>();
 
 		for (int i = 0; i < MEASUREMENT_RUNS; i++) {
-			System.gc(); // Suggest GC to minimize timing interference
-			try {
-				Thread.sleep(100); // Let GC settle
-			} catch (InterruptedException ignored) { }
-
-			InferenceEngine<?> engine = config.factory.create();
-			long start = System.nanoTime();
-			ArrayList<?> results = engine.run();
-			long end = System.nanoTime();
-			double durationMs = ( end - start ) / 1e6;
-			timesMs.add(durationMs);
-
-			double meanEstimate;
-			if (engine instanceof LikelihoodWeighting<?> lw) {
-				ArrayList<Double> weights = lw.getWeights();
-				double weightedSum = 0.0;
-				for (int j = 0; j < results.size(); j++) {
-					weightedSum += ( (Number) results.get(j) ).doubleValue() * weights.get(j);
-				}
-				meanEstimate = weightedSum;
-			}
-			else {
-				meanEstimate = results.stream()
-									  .mapToDouble(x -> ( (Number) x ).doubleValue())
-									  .average()
-									  .orElse(0.0);
-			}
-			meanEstimates.add(meanEstimate);
-			System.out.print(".");
+			BenchmarkResult benchmarkResult = runBenchmark(config);
+			timesMs.add(benchmarkResult.durationMs);
+			meanEstimates.add(benchmarkResult.meanEstimate);
 		}
 		System.out.println(" Done.");
 
+		calculateBenchmarkResults(config, timesMs, meanEstimates);
+	}
+
+	private static BenchmarkResult runBenchmark(BenchmarkConfig config) {
+		System.gc();
+		try {
+			Thread.sleep(100);
+		} catch (InterruptedException ignored) { }
+
+		InferenceEngine<?> engine = config.factory.create();
+
+		long start = System.nanoTime();
+		Posterior<?> results = engine.run();
+		long end = System.nanoTime();
+
+		double runtimeMs = ( end - start ) / 1e6;
+		double meanEstimate = results.mean();
+
+		System.out.print(".");
+		return new BenchmarkResult(meanEstimate, runtimeMs);
+	}
+
+	private static void calculateBenchmarkResults(BenchmarkConfig config,
+			List<Double> timesMs,
+			List<Double> meanEstimates) {
 		double min = Double.MAX_VALUE;
 		double max = Double.MIN_VALUE;
 		double sum = 0;
@@ -151,6 +147,8 @@ public class Benchmark {
 	interface EngineFactory {
 		InferenceEngine<?> create();
 	}
+
+	private record BenchmarkResult(double meanEstimate, double durationMs) { }
 
 	private static class BenchmarkConfig {
 		String name;
