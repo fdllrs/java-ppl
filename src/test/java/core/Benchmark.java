@@ -129,17 +129,13 @@ public class Benchmark {
 										  .average()
 										  .orElse(0.0);
 
-		double unitsPerSecond = ( config.unitCount * 1000.0 ) / meanTime;
-
 		System.out.printf("  Results for %s (%d %s):\n",
 						  config.name,
 						  config.unitCount,
 						  config.unitName);
 		System.out.printf("    Avg Execution Time : %.2f ms (+- %.2f ms)\n", meanTime, stdDev);
 		System.out.printf("    Min / Max Time     : %.2f ms / %.2f ms\n", min, max);
-		System.out.printf("    Throughput         : %,.2f %s/sec\n",
-						  unitsPerSecond,
-						  config.unitName);
+
 		System.out.printf("    Avg Mean Estimate  : %.4f\n", avgEstimate);
 		System.out.println();
 	}
