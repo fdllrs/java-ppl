@@ -83,9 +83,9 @@ public class CLI implements Callable<Integer> {
 				description = "Algorithm to run: lw, ssmh, smc.")
 		private String algorithm;
 		@Option(
-				names = { "-p", "--particles" }, defaultValue = "10000",
-				description = "Number of particles to use.")
-		private int particles;
+				names = { "-p", "--particles", "-i", "--iterations" }, defaultValue = "10000",
+				description = "Number of particles or iterations to use.")
+		private int numIterations;
 		@Option(
 				names = { "-w", "--warmup" }, defaultValue = "1000",
 				description = "Warmup iterations (MH only).")
@@ -104,7 +104,12 @@ public class CLI implements Callable<Integer> {
 
 			System.out.println("Loaded program: " + program);
 			System.out.println("Algorithm: " + algorithm);
-			System.out.println("Particles: " + particles);
+			if (algorithm.equalsIgnoreCase("smc")) {
+				System.out.println("Particles: " + numIterations);
+			}
+			else {
+				System.out.println("Iterations: " + numIterations);
+			}
 			Random rng = initializeRandomGenerator();
 
 			Posterior<Number> results = runAlgorithm(program, rng);
@@ -138,14 +143,14 @@ public class CLI implements Callable<Integer> {
 					System.out.println("Running Likelihood Weighting...");
 					LikelihoodWeighting<Number> lw = new LikelihoodWeighting<>(program,
 																			   rng,
-																			   particles);
+																			   numIterations);
 					results = lw.run();
 				}
 				case "smc" -> {
 					System.out.println("Running SMC...");
 					SequentialMonteCarlo<Number> smc = new SequentialMonteCarlo<>(program,
 																				  rng,
-																				  particles);
+																				  numIterations);
 					results = smc.run();
 				}
 				case "ssmh", "mh" -> {
@@ -153,7 +158,7 @@ public class CLI implements Callable<Integer> {
 					SSMetropolisHastings<Number> ssmh = new SSMetropolisHastings<>(program,
 																				   rng,
 																				   warmup,
-																				   particles);
+																				   numIterations);
 					results = ssmh.run();
 				}
 				default -> {
