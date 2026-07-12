@@ -21,7 +21,6 @@ public class IfExpression implements Expression {
 
 	@Override
 	public void evaluate(Environment environment, Address address, Machine machine) {
-
 		machine.evaluateIf(testExpression, thenExpression, elseExpression, environment, address);
 	}
 
@@ -31,9 +30,9 @@ public class IfExpression implements Expression {
 	}
 
 	@Override
-	public boolean equals(Object o) {
-		if (this == o) return true;
-		if (!( o instanceof IfExpression that )) return false;
+	public boolean equals(Object anObject) {
+		if (this == anObject) return true;
+		if (!( anObject instanceof IfExpression that )) return false;
 		return Objects.equals(testExpression, that.testExpression) && Objects.equals(thenExpression,
 																					 that.thenExpression) &&
 			   Objects.equals(elseExpression, that.elseExpression);

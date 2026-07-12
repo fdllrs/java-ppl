@@ -1,10 +1,10 @@
 package core;
 
-import Instructions.EvaluateK;
-import Instructions.Instruction;
 import ast.Expression;
 import ast.ValueExpression;
 import distributions.Normal;
+import instructions.EvaluateK;
+import instructions.Instruction;
 import messaging.Done;
 import messaging.Message;
 import messaging.Observe;

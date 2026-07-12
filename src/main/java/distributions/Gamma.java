@@ -1,5 +1,7 @@
 package distributions;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.util.Random;
 
 public record Gamma(double shape, double scale) implements Distribution {
@@ -62,9 +64,6 @@ public record Gamma(double shape, double scale) implements Distribution {
 		return term1 + term2 + term3 + term4;
 	}
 
-	/**
-	 * Computes log(Gamma(x)) using Lanczos approximation (Numerical Recipes).
-	 */
 	static double logGamma(double x) {
 		double tmp = ( x - 0.5 ) * Math.log(x + 4.5) - ( x + 4.5 );
 		double ser =
@@ -73,6 +72,7 @@ public record Gamma(double shape, double scale) implements Distribution {
 		return tmp + Math.log(ser * Math.sqrt(2.0 * Math.PI));
 	}
 
+	@NotNull
 	@Override
 	public String toString() {
 		return String.format("(gamma %f %f)", shape, scale);

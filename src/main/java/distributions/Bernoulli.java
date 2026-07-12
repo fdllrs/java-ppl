@@ -1,10 +1,12 @@
 package distributions;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.util.Random;
 
 public record Bernoulli(double p) implements Distribution {
 	public Bernoulli {
-		Distribution.assertProbability("bernoulli", p);
+		Distribution.assertIsInRange("bernoulli", p);
 	}
 
 	@Override
@@ -38,6 +40,7 @@ public record Bernoulli(double p) implements Distribution {
 		return val;
 	}
 
+	@NotNull
 	@Override
 	public String toString() {
 		return String.format("(bernoulli %f)", p);

@@ -9,7 +9,7 @@ public interface Distribution {
 		}
 	}
 
-	static void assertProbability(String name, double p) {
+	static void assertIsInRange(String name, double p) {
 		if (p < 0.0 || p > 1.0) {
 			throw new IllegalArgumentException(name + ": p must be in [0,1], got: " + p);
 		}

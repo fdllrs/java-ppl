@@ -28,9 +28,9 @@ public class FnExpression implements Expression {
 	}
 
 	@Override
-	public boolean equals(Object o) {
-		if (this == o) return true;
-		if (!( o instanceof FnExpression that )) return false;
+	public boolean equals(Object anObject) {
+		if (this == anObject) return true;
+		if (!( anObject instanceof FnExpression that )) return false;
 		return Objects.equals(params, that.params) && Objects.equals(body, that.body);
 	}
 

@@ -29,9 +29,9 @@ public class CallExpression implements Expression {
 	}
 
 	@Override
-	public boolean equals(Object o) {
-		if (this == o) return true;
-		if (!( o instanceof CallExpression that )) return false;
+	public boolean equals(Object anObject) {
+		if (this == anObject) return true;
+		if (!( anObject instanceof CallExpression that )) return false;
 		return Objects.equals(operator, that.operator) && Objects.equals(operands, that.operands);
 	}
 

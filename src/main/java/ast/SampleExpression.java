@@ -25,10 +25,10 @@ public class SampleExpression implements Expression {
 	}
 
 	@Override
-	public boolean equals(Object o) {
-		if (this == o) return true;
-		if (!( o instanceof SampleExpression that )) return false;
-		return Objects.equals(expression, that.expression);
+	public boolean equals(Object anObject) {
+		if (this == anObject) return true;
+		if (!( anObject instanceof SampleExpression sampleExpression )) return false;
+		return Objects.equals(expression, sampleExpression.expression);
 	}
 
 	@Override

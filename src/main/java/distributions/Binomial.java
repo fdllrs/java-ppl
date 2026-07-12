@@ -1,12 +1,14 @@
 package distributions;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.util.Random;
 
 public record Binomial(int n, double p) implements Distribution {
 
 	public Binomial {
 		Distribution.assertNonNegative(n);
-		Distribution.assertProbability("binomial", p);
+		Distribution.assertIsInRange("binomial", p);
 	}
 
 	@Override
@@ -49,6 +51,7 @@ public record Binomial(int n, double p) implements Distribution {
 		return Gamma.logGamma(n + 1) - Gamma.logGamma(k + 1) - Gamma.logGamma(n - k + 1);
 	}
 
+	@NotNull
 	@Override
 	public String toString() {
 		return String.format("(binomial %d %f)", n, p);

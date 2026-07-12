@@ -1,4 +1,4 @@
-package Instructions;
+package instructions;
 
 import ast.Expression;
 import core.Address;

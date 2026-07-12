@@ -27,11 +27,12 @@ public class ObserveExpression implements Expression {
 	}
 
 	@Override
-	public boolean equals(Object o) {
-		if (this == o) return true;
-		if (!( o instanceof ObserveExpression that )) return false;
-		return Objects.equals(expression1, that.expression1) && Objects.equals(expression2,
-																			   that.expression2);
+	public boolean equals(Object anObject) {
+		if (this == anObject) return true;
+		if (!( anObject instanceof ObserveExpression observeExpression )) return false;
+		return Objects.equals(expression1, observeExpression.expression1) && Objects.equals(
+				expression2,
+				observeExpression.expression2);
 	}
 
 	@Override

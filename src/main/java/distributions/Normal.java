@@ -1,5 +1,7 @@
 package distributions;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.util.Random;
 
 public record Normal(double mu, double sigma) implements Distribution {
@@ -24,6 +26,7 @@ public record Normal(double mu, double sigma) implements Distribution {
 		return -0.5 * ( LOG2PI + z * z ) - Math.log(sigma);
 	}
 
+	@NotNull
 	@Override
 	public String toString() {
 		return String.format("(normal %f %f)", mu, sigma);

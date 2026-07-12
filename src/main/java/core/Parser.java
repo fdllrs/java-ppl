@@ -1,7 +1,7 @@
 package core;
 
-import Instructions.LetK.Binding;
 import ast.*;
+import instructions.LetK.Binding;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
