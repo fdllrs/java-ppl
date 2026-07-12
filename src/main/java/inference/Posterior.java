@@ -3,14 +3,14 @@ package inference;
 import java.util.Collections;
 import java.util.List;
 
-public record Posterior <T>(List<T> samples, List<Double> weights) {
+public record Posterior <T extends Number>(List<T> samples, List<Double> weights) {
 	public Posterior {
 		if (samples.size() != weights.size()) {
 			throw new IllegalArgumentException("Samples and weights must have the same size.");
 		}
 	}
 
-	public static <T> Posterior<T> ofUnweighted(List<T> samples) {
+	public static <T extends Number> Posterior<T> ofUnweighted(List<T> samples) {
 		if (samples.isEmpty()) {
 			return new Posterior<>(samples, Collections.emptyList());
 		}
@@ -24,14 +24,10 @@ public record Posterior <T>(List<T> samples, List<Double> weights) {
 
 	public double variance() {
 		if (samples.isEmpty()) return 0.0;
-		if (!( samples.getFirst() instanceof Number )) {
-			throw new UnsupportedOperationException(
-					"Variance calculation is only supported for numeric samples.");
-		}
 		double meanVal = mean();
 		double sum = 0.0;
 		for (int i = 0; i < samples.size(); i++) {
-			double diff = ( (Number) samples.get(i) ).doubleValue() - meanVal;
+			double diff = samples.get(i).doubleValue() - meanVal;
 			sum += diff * diff * weights.get(i);
 		}
 		return sum;
@@ -39,13 +35,9 @@ public record Posterior <T>(List<T> samples, List<Double> weights) {
 
 	public double mean() {
 		if (samples.isEmpty()) return 0.0;
-		if (!( samples.getFirst() instanceof Number )) {
-			throw new UnsupportedOperationException(
-					"Mean calculation is only supported for numeric samples.");
-		}
 		double sum = 0.0;
 		for (int i = 0; i < samples.size(); i++) {
-			sum += ( (Number) samples.get(i) ).doubleValue() * weights.get(i);
+			sum += samples.get(i).doubleValue() * weights.get(i);
 		}
 		return sum;
 	}

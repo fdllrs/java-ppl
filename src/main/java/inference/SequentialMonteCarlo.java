@@ -12,7 +12,7 @@ import java.util.List;
 import java.util.Random;
 import java.util.stream.Collectors;
 
-public class SequentialMonteCarlo <T> extends InferenceEngine<T> {
+public class SequentialMonteCarlo <T extends Number> extends InferenceEngine<T> {
 
 	private final int particleCount;
 
@@ -72,7 +72,7 @@ public class SequentialMonteCarlo <T> extends InferenceEngine<T> {
 		return messages.stream().allMatch((message) -> message instanceof Done);
 	}
 
-	@SuppressWarnings("unchecked") // MEDIO FEO PERDÓN
+	@SuppressWarnings("unchecked")
 	private ArrayList<T> getMessageResults(ArrayList<Message> messages) {
 		ArrayList<T> results = new ArrayList<>();
 		for (Message message : messages) {

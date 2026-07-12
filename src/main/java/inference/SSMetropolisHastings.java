@@ -8,7 +8,7 @@ import messaging.*;
 
 import java.util.*;
 
-public class SSMetropolisHastings <T> extends InferenceEngine<T> {
+public class SSMetropolisHastings <T extends Number> extends InferenceEngine<T> {
 
 	private final int warmup;
 	private final int iterations;
@@ -19,7 +19,7 @@ public class SSMetropolisHastings <T> extends InferenceEngine<T> {
 		this.iterations = iterations;
 	}
 
-	private static Trace processMessage(Random rng,
+	private static Optional<Trace> processMessage(Random rng,
 			Address proposalAddress,
 			Map<Address, Object> currentSamples,
 			Message message,
@@ -39,30 +39,45 @@ public class SSMetropolisHastings <T> extends InferenceEngine<T> {
 																						   distribution);
 			case Observe(
 					Address observeAddress, Distribution distribution, Object observation
-			) -> processObservation(machine,
-									logLikelihoods,
-									observeAddress,
-									distribution,
-									observation);
+			) -> storeObservationLogLikelihood(machine,
+											   logLikelihoods,
+											   observeAddress,
+											   distribution,
+											   observation);
 			case Done(var returnValue) -> {
-				return new Trace(returnValue,
-								 samples,
-								 logPriors,
-								 logLikelihoods,
-								 new ArrayList<>(samples.keySet()));
+				return Optional.of(new Trace(returnValue,
+											 samples,
+											 logPriors,
+											 logLikelihoods,
+											 new ArrayList<>(samples.keySet())));
 			}
 			case Fork() -> throw new RuntimeException("Should not fork in SSMH");
 		}
-		return null;
+		return Optional.empty();
 	}
 
-	private static void processObservation(Machine machine,
+	/**
+	 * Stores the log-likelihood of an observation and resumes the machine with the observed value.
+	 */
+	private static void storeObservationLogLikelihood(Machine machine,
 			Map<Address, Object> logLikelihoods,
 			Address observeAddress,
 			Distribution distribution,
 			Object observation) {
 		logLikelihoods.put(observeAddress, distribution.logProb(observation));
 		machine.send(observation);
+	}
+
+	/**
+	 * Stores the log-prior of a sampled value and resumes the machine with that value.
+	 */
+	private static void storeSampleLogPrior(Machine machine,
+			Map<Address, Object> logPriors,
+			Address sampleAddress,
+			Distribution distribution,
+			Object sampledValue) {
+		logPriors.put(sampleAddress, distribution.logProb(sampledValue));
+		machine.send(sampledValue);
 	}
 
 	private static void processSample(Random rng,
@@ -80,11 +95,11 @@ public class SSMetropolisHastings <T> extends InferenceEngine<T> {
 		else {
 			samples.put(sampleAddress, currentSamples.get(sampleAddress));
 		}
-		processObservation(machine,
-						   logPriors,
-						   sampleAddress,
-						   distribution,
-						   samples.get(sampleAddress));
+		storeSampleLogPrior(machine,
+							logPriors,
+							sampleAddress,
+							distribution,
+							samples.get(sampleAddress));
 	}
 
 	private static double calculateLogAcceptanceRatio(Trace currentTrace,
@@ -158,15 +173,15 @@ public class SSMetropolisHastings <T> extends InferenceEngine<T> {
 		while (true) {
 			Message message = machine.resume();
 
-			Trace returnValue = processMessage(rng,
-											   proposalAddress,
-											   currentSamples,
-											   message,
-											   samples,
-											   logPriors,
-											   machine,
-											   logLikelihoods);
-			if (returnValue != null) return returnValue;
+			Optional<Trace> result = processMessage(rng,
+													proposalAddress,
+													currentSamples,
+													message,
+													samples,
+													logPriors,
+													machine,
+													logLikelihoods);
+			if (result.isPresent()) return result.get();
 		}
 	}
 

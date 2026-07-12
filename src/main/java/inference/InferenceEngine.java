@@ -1,17 +1,17 @@
 package inference;
 
-import Instructions.EvaluateK;
-import Instructions.Instruction;
 import ast.DefnExpression;
 import ast.Expression;
 import core.Address;
 import core.Environment;
 import core.Machine;
 import core.callable.Closure;
+import instructions.EvaluateK;
+import instructions.Instruction;
 
 import java.util.*;
 
-public abstract class InferenceEngine <T> {
+public abstract class InferenceEngine <T extends Number> {
 	protected final Random rng;
 	protected final List<Expression> program;
 
@@ -21,14 +21,20 @@ public abstract class InferenceEngine <T> {
 	}
 
 	public static ArrayList<Double> softmax(ArrayList<Double> logWeights) {
-		ArrayList<Double> probabilities = new ArrayList<>();
-
 		double max = logWeights.stream().mapToDouble(Double::doubleValue).max().orElse(0.0);
 
+		if (Double.isInfinite(max) && max < 0) {
+			throw new IllegalStateException(
+					"All log-weights are -Infinity: the model has zero probability mass " +
+					"on every trace (degenerate particle collapse).");
+		}
+
+		ArrayList<Double> probabilities = new ArrayList<>(logWeights.size());
 		double sum = 0.0;
-		for (int i = 0; i < logWeights.size(); i++) {
-			probabilities.add(i, Math.exp(logWeights.get(i) - max));
-			sum += probabilities.get(i);
+		for (double lw : logWeights) {
+			double p = Math.exp(lw - max);
+			probabilities.add(p);
+			sum += p;
 		}
 
 		for (int i = 0; i < probabilities.size(); i++) {
@@ -68,8 +74,16 @@ public abstract class InferenceEngine <T> {
 				environment.add(name, closure);
 			}
 			else {
+				if (main != null) {
+					throw new RuntimeException("Program has multiple top-level expressions. " +
+											   "Only one non-defn expression is allowed as the " +
+											   "program entry point.");
+				}
 				main = expr;
 			}
+		}
+		if (main == null) {
+			throw new RuntimeException("Program has no top-level expression to evaluate.");
 		}
 		return new EvaluateK(main, environment, new Address());
 	}

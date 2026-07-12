@@ -1,11 +1,11 @@
 package core;
 
-import Instructions.*;
-import Instructions.LetK.Binding;
 import ast.Expression;
 import core.callable.Callable;
 import core.callable.Closure;
 import distributions.Distribution;
+import instructions.*;
+import instructions.LetK.Binding;
 import messaging.Done;
 import messaging.Message;
 import messaging.Observe;
@@ -98,13 +98,13 @@ public class Machine {
 		Address address = letK.getAddress();
 		List<Expression> body = letK.getBody();
 
-		Binding binding = letK.getBindings().get(index);
+		Binding binding = letK.getBinding(index);
 		env.add(binding.variableName(), valueStack.pop());
 		if (index + 1 < letK.getBindings().size()) {
 			controlStack.push(new LetK(letK.getBindings(), index + 1, body, env, address));
-			Expression nextExpression = letK.getBindings().get(index + 1).valueExpression();
+			Expression nextExpression = letK.getBinding(index + 1).valueExpression();
 
-			Address newAddress = address.append(AddressTag.LET, index + 2);
+			Address newAddress = address.append(AddressTag.LET);
 			controlStack.push(new EvaluateK(nextExpression, env, newAddress));
 		}
 		else {
@@ -154,7 +154,10 @@ public class Machine {
 
 		Expression branch;
 		AddressTag tag;
-		if ((boolean) valueStack.pop()) {
+
+		boolean testExpression = popBoolean();
+
+		if (testExpression) {
 			branch = ifK.getThenExpression();
 			tag = AddressTag.THEN;
 		}
@@ -162,7 +165,17 @@ public class Machine {
 			branch = ifK.getElseExpression();
 			tag = AddressTag.ELSE;
 		}
-		controlStack.push(new EvaluateK(branch, ifK.getEnvironment(), address.append(tag, 0)));
+		controlStack.push(new EvaluateK(branch, ifK.getEnvironment(), address.append(tag)));
+	}
+
+	private boolean popBoolean() {
+		boolean testExpression;
+		try {
+			testExpression = (boolean) valueStack.pop();
+		} catch (ClassCastException e) {
+			throw new RuntimeException("Test expression must evaluate to a boolean");
+		}
+		return testExpression;
 	}
 
 	public void executeSampleK(SampleK sampleK) {
@@ -201,7 +214,7 @@ public class Machine {
 
 		controlStack.push(new EvaluateK(testExpression,
 										environment,
-										address.append(AddressTag.TEST, 0)));
+										address.append(AddressTag.TEST)));
 	}
 
 	public void evaluateObserve(Expression expression1,
@@ -213,11 +226,11 @@ public class Machine {
 
 		controlStack.push(new EvaluateK(expression2,
 										environment,
-										address.append(AddressTag.VALUE, 0)));
+										address.append(AddressTag.VALUE)));
 
 		controlStack.push(new EvaluateK(expression1,
 										environment,
-										address.append(AddressTag.DISTRIBUTION, 0)));
+										address.append(AddressTag.DISTRIBUTION)));
 	}
 
 	public void evaluateSample(Expression expression, Environment environment, Address address) {
@@ -225,7 +238,7 @@ public class Machine {
 
 		controlStack.push(new EvaluateK(expression,
 										environment,
-										address.append(AddressTag.DISTRIBUTION, 0)));
+										address.append(AddressTag.DISTRIBUTION)));
 	}
 
 	public void evaluateFn(List<String> params, List<Expression> body, Environment environment) {
@@ -242,7 +255,7 @@ public class Machine {
 		for (int i = operands.size() - 1; i >= 0; i--) {
 			controlStack.push(new EvaluateK(operands.get(i), environment, address.append(i)));
 		}
-		controlStack.push(new EvaluateK(operator, environment, address.append(AddressTag.FN, 0)));
+		controlStack.push(new EvaluateK(operator, environment, address.append(AddressTag.FN)));
 	}
 
 	public void evaluateLet(List<Binding> binds,
@@ -255,7 +268,7 @@ public class Machine {
 
 			controlStack.push(new EvaluateK(expressionToEvaluate,
 											environment,
-											address.append(AddressTag.LET, 0)));
+											address.append(AddressTag.LET)));
 		}
 		else {
 			this.pushBody(body, environment, address);

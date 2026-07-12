@@ -1,4 +1,4 @@
-package Instructions;
+package instructions;
 
 import ast.Expression;
 import core.Address;
@@ -32,6 +32,8 @@ public class LetK extends Instruction {
 	public List<Binding> getBindings() { return bindings; }
 
 	public int getIndex() { return index; }
+
+	public Binding getBinding(int index) { return bindings.get(index); }
 
 	public List<Expression> getBody() { return body; }
 

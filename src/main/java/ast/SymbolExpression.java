@@ -4,23 +4,21 @@ import core.Address;
 import core.Environment;
 import core.Machine;
 import core.callable.PrimitiveFunction;
+import org.jetbrains.annotations.NotNull;
 
 public record SymbolExpression(String name) implements Expression {
 
 	@Override
 	public void evaluate(Environment environment, Address address, Machine machine) {
-		Object val = environment.lookup(this.name);
 		PrimitiveFunction primitive = PrimitiveFunction.fromSymbol(this.name);
-		if (val == null && primitive != null) val = primitive;
+		Object val;
+		if (primitive != null) { val = primitive; }
+		else { val = environment.lookup(this.name); }
 
-		if (val != null) {
-			machine.evaluateSymbol(val);
-		}
-		else {
-			throw new RuntimeException("undefined Symbol: " + this.name);
-		}
+		machine.evaluateSymbol(val);
 	}
 
+	@NotNull
 	@Override
 	public String toString() {
 		return String.valueOf(this.name);

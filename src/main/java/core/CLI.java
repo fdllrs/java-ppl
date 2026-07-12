@@ -25,20 +25,14 @@ public class CLI implements Callable<Integer> {
 		System.exit(exitCode);
 	}
 
-	private static void printStatistics(Posterior<?> posterior) {
-		List<?> samples = posterior.samples();
-		List<Double> doubleSamples = samples.stream()
-											.map(x -> ( (Number) x ).doubleValue())
-											.toList();
-		double min = doubleSamples.stream().mapToDouble(x -> x).min().orElse(0.0);
-		double max = doubleSamples.stream().mapToDouble(x -> x).max().orElse(0.0);
+	private static void printStatistics(Posterior<? extends Number> posterior) {
+		List<? extends Number> samples = posterior.samples();
+		double min = samples.stream().mapToDouble(Number::doubleValue).min().orElse(0.0);
+		double max = samples.stream().mapToDouble(Number::doubleValue).max().orElse(0.0);
 
-		double mean = posterior.mean();
-		double stdDev = posterior.stdDev();
 		System.out.println("\n--- Inference Statistics ---");
-
-		System.out.printf("Mean    : %.4f%n", mean);
-		System.out.printf("Std Dev : %.4f%n", stdDev);
+		System.out.printf("Mean    : %.4f%n", posterior.mean());
+		System.out.printf("Std Dev : %.4f%n", posterior.stdDev());
 		System.out.printf("Min     : %.4f%n", min);
 		System.out.printf("Max     : %.4f%n", max);
 		System.out.printf("ESS     : %.2f%n", posterior.effectiveSampleSize());
@@ -53,7 +47,7 @@ public class CLI implements Callable<Integer> {
 		double binWidth = ( max - min ) / binCount;
 
 		for (int i = 0; i < samples.size(); i++) {
-			double val = doubleSamples.get(i);
+			double val = samples.get(i).doubleValue();
 			double weight = posterior.weights().get(i);
 			int binIndex = (int) ( ( val - min ) / binWidth );
 			if (binIndex >= binCount) binIndex = binCount - 1;
@@ -113,18 +107,14 @@ public class CLI implements Callable<Integer> {
 			System.out.println("Particles: " + particles);
 			Random rng = initializeRandomGenerator();
 
-			Posterior<Object> results;
-			results = runAlgorithm(program, rng);
+			Posterior<Number> results = runAlgorithm(program, rng);
 
 			if (results == null) return 1;
 			if (results.samples().isEmpty()) {
 				System.out.println("No samples collected.");
+				return 0;
 			}
-			boolean allNumeric = results.samples().stream().allMatch(x -> x instanceof Number);
-
-			if (allNumeric) {
-				printStatistics(results);
-			}
+			printStatistics(results);
 			return 0;
 		}
 
@@ -141,26 +131,26 @@ public class CLI implements Callable<Integer> {
 			return rng;
 		}
 
-		private Posterior<Object> runAlgorithm(List<Expression> program, Random rng) {
-			Posterior<Object> results;
+		private Posterior<Number> runAlgorithm(List<Expression> program, Random rng) {
+			Posterior<Number> results;
 			switch (algorithm.toLowerCase()) {
 				case "lw" -> {
 					System.out.println("Running Likelihood Weighting...");
-					LikelihoodWeighting<Object> lw = new LikelihoodWeighting<>(program,
+					LikelihoodWeighting<Number> lw = new LikelihoodWeighting<>(program,
 																			   rng,
 																			   particles);
 					results = lw.run();
 				}
 				case "smc" -> {
 					System.out.println("Running SMC...");
-					SequentialMonteCarlo<Object> smc = new SequentialMonteCarlo<>(program,
+					SequentialMonteCarlo<Number> smc = new SequentialMonteCarlo<>(program,
 																				  rng,
 																				  particles);
 					results = smc.run();
 				}
 				case "ssmh", "mh" -> {
 					System.out.println("Running SSMH...");
-					SSMetropolisHastings<Object> ssmh = new SSMetropolisHastings<>(program,
+					SSMetropolisHastings<Number> ssmh = new SSMetropolisHastings<>(program,
 																				   rng,
 																				   warmup,
 																				   particles);

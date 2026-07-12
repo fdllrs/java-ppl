@@ -3,6 +3,7 @@ package ast;
 import core.Address;
 import core.Environment;
 import core.Machine;
+import org.jetbrains.annotations.NotNull;
 
 public record ValueExpression(Object value) implements Expression {
 
@@ -11,6 +12,7 @@ public record ValueExpression(Object value) implements Expression {
 		machine.evaluateSymbol(this.value);
 	}
 
+	@NotNull
 	@Override
 	public String toString() {
 		return value.toString();

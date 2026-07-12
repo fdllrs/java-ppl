@@ -166,9 +166,7 @@ public enum PrimitiveFunction implements Callable {
 				return pf;
 			}
 		}
-		if (symbol.equals("=")) {
-			return EQUALS;
-		}
+
 		return null;
 	}
 }

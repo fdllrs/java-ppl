@@ -10,7 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
-public class LikelihoodWeighting <T> extends InferenceEngine<T> {
+public class LikelihoodWeighting <T extends Number> extends InferenceEngine<T> {
 
 	private final int iterations;
 
