@@ -35,7 +35,7 @@ public class PosteriorTest {
 	@Test
 	public void testConstructorRejectsUnequalSizes() {
 		assertThrows(IllegalArgumentException.class,
-				() -> new Posterior<>(List.of(1), List.of(0.5, 0.5)));
+					 () -> new Posterior<>(List.of(1), List.of(0.5, 0.5)));
 	}
 
 	@Test

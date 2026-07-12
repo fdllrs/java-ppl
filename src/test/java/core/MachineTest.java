@@ -179,18 +179,19 @@ public class MachineTest {
 		Machine machine = new Machine(stack, env, new Random(0));
 		Message msg = machine.resume();
 		assertInstanceOf(Done.class, msg);
-		assertEquals(10.0, ((Number) ((Done) msg).returnValue()).doubleValue(), 1e-12);
+		assertEquals(10.0, ( (Number) ( (Done) msg ).returnValue() ).doubleValue(), 1e-12);
 	}
 
 	@Test
 	public void testDefnAndCall() {
 		// A defn + invocation via InferenceEngine boilerplate
 		List<Expression> program = Parser.parse("""
-				(defn double [x] (* x 2))
-				(double 7)
-				""");
-		inference.LikelihoodWeighting<Double> lw =
-				new inference.LikelihoodWeighting<>(program, new Random(0), 1);
+												(defn double [x] (* x 2))
+												(double 7)
+												""");
+		inference.LikelihoodWeighting<Double> lw = new inference.LikelihoodWeighting<>(program,
+																					   new Random(0),
+																					   1);
 		inference.Posterior<Double> p = lw.run();
 		assertEquals(14.0, p.mean(), 1e-9);
 	}
@@ -205,7 +206,7 @@ public class MachineTest {
 		Machine machine = new Machine(stack, env, new Random(0));
 		Message msg = machine.resume();
 		assertInstanceOf(Done.class, msg);
-		assertEquals(8.0, ((Number) ((Done) msg).returnValue()).doubleValue(), 1e-12);
+		assertEquals(8.0, ( (Number) ( (Done) msg ).returnValue() ).doubleValue(), 1e-12);
 	}
 
 	@Test
@@ -217,18 +218,19 @@ public class MachineTest {
 		Machine machine = new Machine(stack, env, new Random(0));
 		Message msg = machine.resume();
 		assertInstanceOf(Done.class, msg);
-		assertEquals(3L, ((Done) msg).returnValue());
+		assertEquals(3L, ( (Done) msg ).returnValue());
 	}
 
 	@Test
 	public void testRecursiveFunction() {
 		// factorial via defn + recursion
 		List<Expression> program = Parser.parse("""
-				(defn fact [n] (if (== n 0) 1 (* n (fact (- n 1)))))
-				(fact 5)
-				""");
-		inference.LikelihoodWeighting<Double> lw =
-				new inference.LikelihoodWeighting<>(program, new Random(0), 1);
+												(defn fact [n] (if (== n 0) 1 (* n (fact (- n 1)))))
+												(fact 5)
+												""");
+		inference.LikelihoodWeighting<Double> lw = new inference.LikelihoodWeighting<>(program,
+																					   new Random(0),
+																					   1);
 		inference.Posterior<Double> p = lw.run();
 		assertEquals(120.0, p.mean(), 1e-9);
 	}

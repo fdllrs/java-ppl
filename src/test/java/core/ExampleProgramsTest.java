@@ -29,7 +29,10 @@ public class ExampleProgramsTest {
 		verifyExample(program, exactMean, exactStdDev, TOLERANCE);
 	}
 
-	private void verifyExample(List<Expression> program, double exactMean, double exactStdDev, double tolerance) {
+	private void verifyExample(List<Expression> program,
+			double exactMean,
+			double exactStdDev,
+			double tolerance) {
 		Random random = new Random(42);
 
 		// 1. Likelihood Weighting
@@ -47,7 +50,10 @@ public class ExampleProgramsTest {
 																	   SSMH_ITERATIONS);
 		Posterior<Number> ssmhPosterior = ssmh.run();
 		assertEquals(exactMean, ssmhPosterior.mean(), tolerance, "SSMH mean failed to converge");
-		assertEquals(exactStdDev, ssmhPosterior.stdDev(), tolerance, "SSMH stdDev failed to converge");
+		assertEquals(exactStdDev,
+					 ssmhPosterior.stdDev(),
+					 tolerance,
+					 "SSMH stdDev failed to converge");
 
 		// 3. Sequential Monte Carlo
 		SequentialMonteCarlo<Number> smc = new SequentialMonteCarlo<>(program,
@@ -55,7 +61,10 @@ public class ExampleProgramsTest {
 																	  SMC_PARTICLES);
 		Posterior<Number> smcPosterior = smc.run();
 		assertEquals(exactMean, smcPosterior.mean(), tolerance, "SMC mean failed to converge");
-		assertEquals(exactStdDev, smcPosterior.stdDev(), tolerance, "SMC stdDev failed to converge");
+		assertEquals(exactStdDev,
+					 smcPosterior.stdDev(),
+					 tolerance,
+					 "SMC stdDev failed to converge");
 	}
 
 	@Test

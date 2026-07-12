@@ -111,6 +111,15 @@ def run_exact_calculations():
     e11_var = 3.0 * (0.4 ** 2)
     e11_stddev = math.sqrt(e11_var)
     print(f"Ejemplo 11 (gamma)           - Mean: {e11_mean:.6f}, StdDev: {e11_stddev:.6f}")
+
+    # --- EJEMPLO 12: gamma-poisson ---
+    # Prior: lambda ~ Gamma(shape=2, scale=2)
+    # Obs: Poisson(lambda) at 3.0
+    # Posterior: Gamma(shape=5, scale=2/3)
+    e12_mean = 5.0 * (2.0 / 3.0)
+    e12_var = 5.0 * ((2.0 / 3.0) ** 2)
+    e12_stddev = math.sqrt(e12_var)
+    print(f"Ejemplo 12 (gamma-poisson)   - Mean: {e12_mean:.6f}, StdDev: {e12_stddev:.6f}")
     print("==================================================")
 
 if __name__ == "__main__":

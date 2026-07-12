@@ -64,4 +64,8 @@ public class TestProgram {
 	public static List<Expression> gammaExponentialConjugate() {
 		return loadFromResource("gammaExponentialConjugate.txt");
 	}
+
+	public static List<Expression> gammaPoissonConjugate() {
+		return loadFromResource("gammaPoissonConjugate.txt");
+	}
 }

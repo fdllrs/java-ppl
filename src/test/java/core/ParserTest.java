@@ -183,14 +183,14 @@ public class ParserTest {
 	@Test
 	public void testSquareBracketsTokenizeAsParentheses() {
 		// [1 2 3] should parse identically to (1 2 3) — as a call/list form
-		List<Expression> withSquare  = Parser.parse("[1 2 3]");
-		List<Expression> withParens  = Parser.parse("(1 2 3)");
+		List<Expression> withSquare = Parser.parse("[1 2 3]");
+		List<Expression> withParens = Parser.parse("(1 2 3)");
 		assertEquals(withParens, withSquare);
 	}
 
 	@Test
 	public void testCommaIsWhitespace() {
-		List<Expression> withCommas    = Parser.parse("(+ 1, 2, 3)");
+		List<Expression> withCommas = Parser.parse("(+ 1, 2, 3)");
 		List<Expression> withoutCommas = Parser.parse("(+ 1 2 3)");
 		assertEquals(withoutCommas, withCommas);
 	}

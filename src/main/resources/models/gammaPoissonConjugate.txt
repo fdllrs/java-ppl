@@ -1,0 +1,3 @@
+(let [lambda (sample (gamma 2.0 2.0))]
+  (observe (poisson lambda) 3.0)
+  lambda)

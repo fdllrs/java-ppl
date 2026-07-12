@@ -143,6 +143,14 @@ public enum PrimitiveFunction implements Callable {
 			double rate = ( (Number) args.getFirst() ).doubleValue();
 			machine.pushResult(new Exponential(rate));
 		}
+	}, POISSON("poisson") {
+		@Override
+		public void apply(Machine machine, List<Object> args, Address address) {
+			if (args.size() != 1) throw new IllegalArgumentException(
+					"poisson distribution expects 1 argument (lambda)");
+			double lambda = ( (Number) args.getFirst() ).doubleValue();
+			machine.pushResult(new Poisson(lambda));
+		}
 	}, UNIFORM("uniform") {
 		@Override
 		public void apply(Machine machine, List<Object> args, Address address) {

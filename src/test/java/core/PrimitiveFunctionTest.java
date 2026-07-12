@@ -177,6 +177,13 @@ public class PrimitiveFunctionTest {
 	}
 
 	@Test
+	public void testPoissonConstructor() {
+		Object result = runProgram("(poisson 3.5)");
+		assertInstanceOf(Poisson.class, result);
+		assertEquals(3.5, ( (Poisson) result ).lambda(), 1e-12);
+	}
+
+	@Test
 	public void testUniformConstructor() {
 		Object result = runProgram("(uniform 0 10)");
 		assertInstanceOf(UniformContinuous.class, result);
