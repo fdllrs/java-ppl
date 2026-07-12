@@ -39,4 +39,12 @@ public class BetaTest {
 		Beta beta = new Beta(2.0, 2.0);
 		assertEquals(Double.NEGATIVE_INFINITY, beta.logProb(1.5));
 	}
+
+	@Test
+	public void testBetaLogProbSymmetricAtHalf() {
+		Beta b = new Beta(1, 1);
+		assertEquals(0.0, b.logProb(0.5), 1e-9);
+		assertEquals(0.0, b.logProb(0.3), 1e-9);
+	}
 }
+

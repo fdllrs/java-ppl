@@ -55,4 +55,19 @@ public class BernoulliTest {
 		Bernoulli bernoulli = new Bernoulli(0.7);
 		assertThrows(IllegalArgumentException.class, () -> bernoulli.logProb("invalid"));
 	}
+
+	@Test
+	public void testBernoulliLogProbPZero() {
+		Bernoulli b = new Bernoulli(0.0);
+		assertEquals(Double.NEGATIVE_INFINITY, b.logProb(true));
+		assertEquals(0.0, b.logProb(false), 1e-9);
+	}
+
+	@Test
+	public void testBernoulliLogProbPOne() {
+		Bernoulli b = new Bernoulli(1.0);
+		assertEquals(0.0, b.logProb(true), 1e-9);
+		assertEquals(Double.NEGATIVE_INFINITY, b.logProb(false));
+	}
 }
+

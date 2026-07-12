@@ -177,4 +177,51 @@ public class ParserTest {
 	public void testUnexpectedClosingParenthesisThrows() {
 		assertThrows(RuntimeException.class, () -> Parser.parse("(+ 1 2))"));
 	}
+
+	// ------------------------------------------------------------------ additional cases
+
+	@Test
+	public void testSquareBracketsTokenizeAsParentheses() {
+		// [1 2 3] should parse identically to (1 2 3) — as a call/list form
+		List<Expression> withSquare  = Parser.parse("[1 2 3]");
+		List<Expression> withParens  = Parser.parse("(1 2 3)");
+		assertEquals(withParens, withSquare);
+	}
+
+	@Test
+	public void testCommaIsWhitespace() {
+		List<Expression> withCommas    = Parser.parse("(+ 1, 2, 3)");
+		List<Expression> withoutCommas = Parser.parse("(+ 1 2 3)");
+		assertEquals(withoutCommas, withCommas);
+	}
+
+	@Test
+	public void testMultiFormParse() {
+		List<Expression> forms = Parser.parse("(+ 1 2) (* 3 4)");
+		assertEquals(2, forms.size());
+		assertInstanceOf(CallExpression.class, forms.get(0));
+		assertInstanceOf(CallExpression.class, forms.get(1));
+	}
+
+	@Test
+	public void testEmptyListParsesToValueExpression() {
+		List<Expression> forms = Parser.parse("()");
+		assertEquals(1, forms.size());
+		assertInstanceOf(ValueExpression.class, forms.getFirst());
+	}
+
+	@Test
+	public void testNegativeDoubleIsValue() {
+		List<Expression> forms = Parser.parse("-3.14");
+		assertEquals(1, forms.size());
+		assertInstanceOf(ValueExpression.class, forms.getFirst());
+		assertEquals(new ValueExpression(-3.14), forms.getFirst());
+	}
+
+	@Test
+	public void testNegativeIntegerIsValue() {
+		List<Expression> forms = Parser.parse("-5");
+		assertEquals(1, forms.size());
+		assertEquals(new ValueExpression(-5L), forms.getFirst());
+	}
 }

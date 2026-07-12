@@ -121,4 +121,115 @@ public class MachineTest {
 		assertInstanceOf(Normal.class, obsMsg.distribution());
 		assertEquals(5.5, obsMsg.value());
 	}
+
+	// ------------------------------------------------------------------ new fix coverage
+
+	@Test
+	public void testNonBooleanConditionThrows() {
+		List<Expression> program = Parser.parse("(if 42 1 0)");
+		Environment env = new Environment();
+		Deque<Instruction> stack = new ArrayDeque<>();
+		stack.push(new EvaluateK(program.getFirst(), env, new Address()));
+		Machine machine = new Machine(stack, env, new Random(0));
+		assertThrows(RuntimeException.class, machine::resume);
+	}
+
+	@Test
+	public void testClosureArityMismatchThrows() {
+		// (fn [x] x) called with two arguments
+		List<Expression> program = Parser.parse("((fn [x] x) 1 2)");
+		Environment env = new Environment();
+		Deque<Instruction> stack = new ArrayDeque<>();
+		stack.push(new EvaluateK(program.getFirst(), env, new Address()));
+		Machine machine = new Machine(stack, env, new Random(0));
+		assertThrows(RuntimeException.class, machine::resume);
+	}
+
+	@Test
+	public void testUnboundVariableThrows() {
+		List<Expression> program = Parser.parse("undefined-variable");
+		Environment env = new Environment();
+		Deque<Instruction> stack = new ArrayDeque<>();
+		stack.push(new EvaluateK(program.getFirst(), env, new Address()));
+		Machine machine = new Machine(stack, env, new Random(0));
+		RuntimeException ex = assertThrows(RuntimeException.class, machine::resume);
+		assertTrue(ex.getMessage().contains("undefined-variable"));
+	}
+
+	@Test
+	public void testNonCallableThrows() {
+		// (42 1) — 42 is not callable
+		List<Expression> program = Parser.parse("(42 1)");
+		Environment env = new Environment();
+		Deque<Instruction> stack = new ArrayDeque<>();
+		stack.push(new EvaluateK(program.getFirst(), env, new Address()));
+		Machine machine = new Machine(stack, env, new Random(0));
+		RuntimeException ex = assertThrows(RuntimeException.class, machine::resume);
+		assertTrue(ex.getMessage().contains("not callable"));
+	}
+
+	// ------------------------------------------------------------------ language features
+
+	@Test
+	public void testUserDefinedFunctionCall() {
+		List<Expression> program = Parser.parse("((fn [x] (* x 2)) 5)");
+		Environment env = new Environment();
+		Deque<Instruction> stack = new ArrayDeque<>();
+		stack.push(new EvaluateK(program.getFirst(), env, new Address()));
+		Machine machine = new Machine(stack, env, new Random(0));
+		Message msg = machine.resume();
+		assertInstanceOf(Done.class, msg);
+		assertEquals(10.0, ((Number) ((Done) msg).returnValue()).doubleValue(), 1e-12);
+	}
+
+	@Test
+	public void testDefnAndCall() {
+		// A defn + invocation via InferenceEngine boilerplate
+		List<Expression> program = Parser.parse("""
+				(defn double [x] (* x 2))
+				(double 7)
+				""");
+		inference.LikelihoodWeighting<Double> lw =
+				new inference.LikelihoodWeighting<>(program, new Random(0), 1);
+		inference.Posterior<Double> p = lw.run();
+		assertEquals(14.0, p.mean(), 1e-9);
+	}
+
+	@Test
+	public void testMultiExpressionBody() {
+		// The first expression is discarded; result should be the second
+		List<Expression> program = Parser.parse("(let [x 3] (+ x 0) (+ x 5))");
+		Environment env = new Environment();
+		Deque<Instruction> stack = new ArrayDeque<>();
+		stack.push(new EvaluateK(program.getFirst(), env, new Address()));
+		Machine machine = new Machine(stack, env, new Random(0));
+		Message msg = machine.resume();
+		assertInstanceOf(Done.class, msg);
+		assertEquals(8.0, ((Number) ((Done) msg).returnValue()).doubleValue(), 1e-12);
+	}
+
+	@Test
+	public void testNestedLet() {
+		List<Expression> program = Parser.parse("(let [x 1] (let [y 2] (+ x y)))");
+		Environment env = new Environment();
+		Deque<Instruction> stack = new ArrayDeque<>();
+		stack.push(new EvaluateK(program.getFirst(), env, new Address()));
+		Machine machine = new Machine(stack, env, new Random(0));
+		Message msg = machine.resume();
+		assertInstanceOf(Done.class, msg);
+		assertEquals(3L, ((Done) msg).returnValue());
+	}
+
+	@Test
+	public void testRecursiveFunction() {
+		// factorial via defn + recursion
+		List<Expression> program = Parser.parse("""
+				(defn fact [n] (if (== n 0) 1 (* n (fact (- n 1)))))
+				(fact 5)
+				""");
+		inference.LikelihoodWeighting<Double> lw =
+				new inference.LikelihoodWeighting<>(program, new Random(0), 1);
+		inference.Posterior<Double> p = lw.run();
+		assertEquals(120.0, p.mean(), 1e-9);
+	}
 }

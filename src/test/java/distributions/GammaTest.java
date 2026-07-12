@@ -39,4 +39,13 @@ public class GammaTest {
 		Gamma gamma = new Gamma(2.0, 2.0);
 		assertEquals(Double.NEGATIVE_INFINITY, gamma.logProb(-1.0));
 	}
+
+	@Test
+	public void testGammaShapeLessThanOne() {
+		Gamma g = new Gamma(0.5, 1.0);
+		for (int i = 0; i < 10; i++) {
+			assertTrue((double) g.sample(rng) > 0.0);
+		}
+	}
 }
+

@@ -39,4 +39,11 @@ public class ExponentialTest {
 		Exponential exp = new Exponential(2.0);
 		assertEquals(Double.NEGATIVE_INFINITY, exp.logProb(-1.0));
 	}
+
+	@Test
+	public void testExponentialLogProbAtZero() {
+		Exponential e = new Exponential(2.0);
+		assertEquals(Math.log(2.0), e.logProb(0.0), 1e-9);
+	}
 }
+

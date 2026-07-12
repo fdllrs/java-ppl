@@ -45,4 +45,11 @@ public class BinomialTest {
 		Binomial binomial = new Binomial(5, 0.4);
 		assertEquals(Double.NEGATIVE_INFINITY, binomial.logProb(-1));
 	}
+
+	@Test
+	public void testBinomialLogProbNonIntegerIsNegInf() {
+		Binomial b = new Binomial(5, 0.5);
+		assertEquals(Double.NEGATIVE_INFINITY, b.logProb(2.7));
+	}
 }
+
