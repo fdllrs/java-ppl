@@ -8,9 +8,15 @@ public class EnvironmentTest {
 
 	@Test
 	public void testEmptyEnvironment() {
+		final String missingVariableName = "x";
 		Environment env = new Environment();
-		assertFalse(env.contains("x"));
-		assertNull(env.lookup("x"));
+
+		assertFalse(env.contains(missingVariableName));
+
+		RuntimeException exception = assertThrows(RuntimeException.class,
+												  () -> env.lookup(missingVariableName));
+
+		assertEquals("Unbound variable: " + missingVariableName, exception.getMessage());
 	}
 
 	@Test

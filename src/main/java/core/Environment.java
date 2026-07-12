@@ -4,24 +4,28 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class Environment {
-	private final Map<String, Object> variables = new HashMap<>();
+	private final Map<String, Object> frame = new HashMap<>();
+	private final Environment parent;
 
 	public Environment() {
-
+		parent = null;
 	}
 
 	public Environment(Environment environment) {
-		for (String name : environment.variables.keySet()) {
-			variables.put(name, environment.variables.get(name));
-			// habría que hacer deep copy si incluyéramos tipos de datos mutables, por ahora no
-			// hace falta
-		}
+		parent = environment;
 	}
 
-	public boolean contains(String name) { return variables.containsKey(name); }
+	public boolean contains(String name) {
+		return frame.containsKey(name) || ( parent != null && parent.contains(name) );
+	}
 
-	public void add(String name, Object value) { variables.put(name, value); }
+	public void add(String name, Object value) { frame.put(name, value); }
 
-	public Object lookup(String name) { return variables.get(name); }
+	public Object lookup(String name) {
+		if (frame.containsKey(name)) return frame.get(name);
+		if (parent != null) return parent.lookup(name);
+
+		throw new RuntimeException("Unbound variable: " + name);
+	}
 }
 
