@@ -4,6 +4,7 @@ import ast.Expression;
 import core.Machine;
 import distributions.Distribution;
 import messaging.*;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -19,28 +20,38 @@ public class LikelihoodWeighting <T> extends InferenceEngine<T> {
 		this.iterations = iterations;
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
 	public Posterior<T> run() {
-		ArrayList<T> values = new ArrayList<>();
-		ArrayList<Double> logWeights = new ArrayList<>();
 
-		for (int i = 0; i < iterations; i++) {
-			runIteration(values, logWeights);
+		List<Random> iterationRngs = initializeRandomGenerators();
+
+		List<MachineResult> results = iterationRngs.parallelStream()
+												   .map(this::executeLikelihoodWeighting)
+												   .toList();
+
+		ArrayList<T> values = new ArrayList<>(iterations);
+		ArrayList<Double> logWeights = new ArrayList<>(iterations);
+
+		for (MachineResult result : results) {
+			values.add((T) result.returnValue());
+			logWeights.add(result.logWeight());
 		}
 
 		ArrayList<Double> weights = softmax(logWeights);
 		return new Posterior<>(values, weights);
 	}
 
-	@SuppressWarnings("unchecked")
-	private void runIteration(List<T> values, List<Double> logWeights) {
-		MachineResult result = executeLikelihoodWeighting();
-		values.add((T) result.returnValue());
-		logWeights.add(result.logWeight());
+	private @NotNull List<Random> initializeRandomGenerators() {
+		List<Random> iterationRngs = new ArrayList<>(iterations);
+		for (int i = 0; i < iterations; i++) {
+			iterationRngs.add(new Random(rng.nextLong()));
+		}
+		return iterationRngs;
 	}
 
-	private MachineResult executeLikelihoodWeighting() {
-		Machine machine = initializeMachine();
+	private MachineResult executeLikelihoodWeighting(Random rng) {
+		Machine machine = initializeMachineWithRNG(rng);
 		while (true) {
 			Message message = machine.resume();
 			switch (message) {
